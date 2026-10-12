@@ -1,6 +1,6 @@
-import type { Dataset, Sex, SexFilter } from "../shared/api"
-import { cached } from "./cache"
-import { fetchNameCounts, fetchRows } from "./upstream"
+import type { Dataset, Sex, SexFilter } from "../shared/api.js"
+import { cached } from "./cache.js"
+import { fetchNameCounts, fetchRows } from "./upstream.js"
 
 /** One cached upstream answer: a year of names for one sex or both. */
 export interface Slice {

@@ -1,17 +1,24 @@
-import { createClient } from "@libsql/client"
+// The HTTP-only client: no native module, so it also runs on Vercel.
+import { createClient } from "@libsql/client/web"
 
 const TTL_MS = 10 * 24 * 60 * 60 * 1000
 
-// Turso when configured (Bun reads .env), otherwise a local SQLite file.
-const client = createClient({
-  url: process.env.TURSO_URL ?? "file:cache.sqlite",
-  authToken: process.env.TURSO_TOKEN,
-})
+// Without TURSO_URL the cache lives in memory only and is lost on restart.
+const client = process.env.TURSO_URL
+  ? createClient({
+      url: process.env.TURSO_URL,
+      authToken: process.env.TURSO_TOKEN,
+    })
+  : undefined
 
 let tableReady: Promise<unknown> | undefined
 
-// Retried on the next use if the database was unreachable.
-function ensureTable() {
+/**
+ * The database once its table exists, or `undefined` when none is configured.
+ * Table creation is retried on the next use if the database was unreachable.
+ */
+function database() {
+  if (!client) return undefined
   tableReady ??= client
     .execute(
       `CREATE TABLE IF NOT EXISTS cache (
@@ -25,7 +32,7 @@ function ensureTable() {
       tableReady = undefined
       throw error
     })
-  return tableReady
+  return tableReady.then(() => client)
 }
 
 // Database errors can carry the connection URL, so only their kind is logged.
@@ -56,8 +63,9 @@ async function purgeExpired() {
   for (const [key, entry] of memory) {
     if (entry.expiresAt <= now) memory.delete(key)
   }
-  await ensureTable()
-  await client.execute({
+  await (
+    await database()
+  )?.execute({
     sql: "DELETE FROM cache WHERE expires_at <= ?",
     args: [now],
   })
@@ -71,12 +79,13 @@ purgeInBackground()
 setInterval(purgeInBackground, 60 * 60 * 1000).unref()
 
 async function readEntry(key: string): Promise<Entry | undefined> {
-  await ensureTable()
-  const result = await client.execute({
+  const result = await (
+    await database()
+  )?.execute({
     sql: "SELECT value, fetched_at, expires_at FROM cache WHERE key = ? AND expires_at > ?",
     args: [key, Date.now()],
   })
-  const row = result.rows[0]
+  const row = result?.rows[0]
   if (!row) return undefined
   return {
     value: JSON.parse(String(row.value)),
@@ -86,8 +95,9 @@ async function readEntry(key: string): Promise<Entry | undefined> {
 }
 
 async function writeEntry(key: string, entry: Entry) {
-  await ensureTable()
-  await client.execute({
+  await (
+    await database()
+  )?.execute({
     sql: "INSERT OR REPLACE INTO cache (key, value, fetched_at, expires_at) VALUES (?, ?, ?, ?)",
     args: [key, JSON.stringify(entry.value), entry.fetchedAt, entry.expiresAt],
   })

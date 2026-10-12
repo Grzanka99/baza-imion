@@ -24,7 +24,8 @@ export const DATASET_YEARS: Record<Dataset, number[]> = {
 
 /** Births add up across years; population snapshots do not. */
 export function defaultYear(dataset: Dataset): YearFilter {
-  return dataset === "children" ? "all" : DATASET_YEARS.population.at(-1)!
+  const years = DATASET_YEARS.population
+  return dataset === "children" ? "all" : years[years.length - 1]
 }
 
 export interface NameRow {

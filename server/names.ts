@@ -8,8 +8,8 @@ import {
   type SortOrder,
   type TrendResponse,
   type YearFilter,
-} from "../shared/api"
-import { loadYear } from "./sources"
+} from "../shared/api.js"
+import { loadYear } from "./sources.js"
 
 const collator = new Intl.Collator("pl")
 

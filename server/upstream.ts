@@ -1,4 +1,4 @@
-import type { Sex } from "../shared/api"
+import type { Sex } from "../shared/api.js"
 
 // Names given to children in 2000-2019, one row per year, name and sex.
 const DATA_URL = "https://api.dane.gov.pl/1.4/resources/21458/data"
@@ -86,7 +86,9 @@ async function withSlot<T>(task: () => Promise<T>): Promise<T> {
 async function withRetries<T>(task: () => Promise<T>): Promise<T> {
   let lastError: unknown
   for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
-    if (attempt > 0) await Bun.sleep(500 * 2 ** attempt)
+    if (attempt > 0) {
+      await new Promise((resolve) => setTimeout(resolve, 500 * 2 ** attempt))
+    }
     try {
       // The slot is held until the body has arrived, not just the headers.
       return await withSlot(task)

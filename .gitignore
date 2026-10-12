@@ -20,11 +20,14 @@ coverage
 Thumbs.db
 Desktop.ini
 
+# Vercel CLI state
+.vercel
+
 # Secrets
 .env
 .env.*
 
-# API response cache, when Turso is not configured
+# Local database files
 cache.sqlite*
 
 # Editor directories and files
