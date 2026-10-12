@@ -26,30 +26,33 @@ import {
 } from "@/components/ui/table"
 import { useApi } from "@/hooks/use-api"
 import { SEX_COLOR, SEX_LABEL, displayName, formatNumber } from "@/lib/format"
-import {
-  FIRST_YEAR,
-  LAST_YEAR,
-  type Sex,
-  type TrendResponse,
-} from "../../shared/api"
-
-const chartConfig = {
-  M: { label: SEX_LABEL.M.many, color: SEX_COLOR.M },
-  K: { label: SEX_LABEL.K.many, color: SEX_COLOR.K },
-} satisfies ChartConfig
+import type { Dataset, Sex, TrendResponse } from "../../shared/api"
 
 const SEXES: Sex[] = ["M", "K"]
 
+const FOOTNOTE: Record<Dataset, string> = {
+  children:
+    "Rejestr nie wykazuje imion nadanych w danym roku mniej niż 5 razy (od 2013 r. mniej niż 2 razy), dlatego brak danych nie oznacza zera.",
+  population:
+    "Liczba żyjących osób o tym imieniu według stanu rejestru na styczeń danego roku (w 2019 r. na lipiec). Imiona noszone przez jedną osobę nie są wykazywane, dlatego brak danych nie oznacza zera.",
+}
+
 interface NameTrendProps {
+  dataset: Dataset
   name: string | null
   onClose: () => void
 }
 
-export function NameTrend({ name, onClose }: NameTrendProps) {
+export function NameTrend({ dataset, name, onClose }: NameTrendProps) {
   const { data, error, loading } = useApi<TrendResponse>(
-    name && `/api/trend?name=${encodeURIComponent(name)}`
+    name && `/api/trend?dataset=${dataset}&name=${encodeURIComponent(name)}`
   )
   const trend = loading || error ? undefined : data
+  const labels = SEX_LABEL[dataset]
+  const chartConfig = {
+    M: { label: labels.M.many, color: SEX_COLOR.M },
+    K: { label: labels.K.many, color: SEX_COLOR.K },
+  } satisfies ChartConfig
   const sexes = trend ? SEXES.filter((sex) => trend.totals[sex] > 0) : []
   // Years below the reporting threshold are gaps in the line, not zeros.
   const chartData = trend?.points.map((point) => ({
@@ -67,12 +70,7 @@ export function NameTrend({ name, onClose }: NameTrendProps) {
           </SheetTitle>
           <SheetDescription>
             {trend
-              ? sexes
-                  .map(
-                    (sex) =>
-                      `${SEX_LABEL[sex].many}: ${formatNumber(trend.totals[sex])}`
-                  )
-                  .join(" · ") + ` w latach ${FIRST_YEAR}–${LAST_YEAR}`
+              ? headline(dataset, trend, sexes)
               : (error ?? "Pobieram dane…")}
           </SheetDescription>
         </SheetHeader>
@@ -136,7 +134,7 @@ export function NameTrend({ name, onClose }: NameTrendProps) {
                       <TableHead>Rok</TableHead>
                       {sexes.map((sex) => (
                         <TableHead key={sex} className="text-right">
-                          {SEX_LABEL[sex].many}
+                          {labels[sex].many}
                         </TableHead>
                       ))}
                     </TableRow>
@@ -160,9 +158,7 @@ export function NameTrend({ name, onClose }: NameTrendProps) {
               </div>
 
               <p className="shrink-0 text-xs text-muted-foreground">
-                Rejestr nie wykazuje imion nadanych w danym roku mniej niż 5
-                razy (od 2013 r. mniej niż 2 razy), dlatego brak danych nie
-                oznacza zera.
+                {FOOTNOTE[dataset]}
               </p>
             </>
           )}
@@ -170,4 +166,22 @@ export function NameTrend({ name, onClose }: NameTrendProps) {
       </SheetContent>
     </Sheet>
   )
+}
+
+/** Births add up over the years; a population is read off the latest snapshot. */
+function headline(dataset: Dataset, trend: TrendResponse, sexes: Sex[]) {
+  const labels = SEX_LABEL[dataset]
+  const first = trend.points[0]
+  const last = trend.points.at(-1)!
+  if (dataset === "children") {
+    const totals = sexes.map(
+      (sex) => `${labels[sex].many}: ${formatNumber(trend.totals[sex])}`
+    )
+    return `${totals.join(" · ")} w latach ${first.year}–${last.year}`
+  }
+  const latest = sexes.map(
+    (sex) =>
+      `${labels[sex].many}: ${last[sex] ? formatNumber(last[sex]) : "brak danych"}`
+  )
+  return `${latest.join(" · ")} w ${last.year} r.`
 }

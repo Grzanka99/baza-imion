@@ -12,11 +12,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { displayName, formatNumber, formatPercent } from "@/lib/format"
+import {
+  SEX_LABEL,
+  displayName,
+  formatNumber,
+  formatPercent,
+} from "@/lib/format"
 import { cn } from "@/lib/utils"
-import type { NameRow, SortKey, SortOrder } from "../../shared/api"
+import type { Dataset, NameRow, SortKey, SortOrder } from "../../shared/api"
 
 interface NamesTableProps {
+  dataset: Dataset
   rows: NameRow[] | undefined
   perPage: number
   loading: boolean
@@ -27,6 +33,7 @@ interface NamesTableProps {
 }
 
 export function NamesTable({
+  dataset,
   rows,
   perPage,
   loading,
@@ -70,14 +77,14 @@ export function NamesTable({
         <TableHeader className="sticky top-0 z-10 bg-background shadow-[0_1px_0_var(--border)]">
           <TableRow>
             <TableHead className="w-16 text-right">Miejsce</TableHead>
-            <TableHead className="w-full">
+            <TableHead className="w-[46%]">
               {sortButton("name", "Imię")}
             </TableHead>
-            <TableHead className="w-12 text-center">Płeć</TableHead>
             <TableHead className="text-right">
               {sortButton("count", "Liczba")}
             </TableHead>
-            <TableHead className="w-24 text-right">Udział</TableHead>
+            <TableHead className="text-center">Płeć</TableHead>
+            <TableHead className="text-right">Udział</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody className={cn(loading && rows && "opacity-50")}>
@@ -117,11 +124,14 @@ export function NamesTable({
                   {displayName(row.name)}
                 </button>
               </TableCell>
-              <TableCell className="text-center">
-                <SexIcon sex={row.sex} />
-              </TableCell>
               <TableCell className="text-right tabular-nums">
                 {formatNumber(row.count)}
+              </TableCell>
+              <TableCell className="text-center">
+                <SexIcon
+                  sex={row.sex}
+                  label={SEX_LABEL[dataset][row.sex].one}
+                />
               </TableCell>
               <TableCell className="text-right text-muted-foreground tabular-nums">
                 {formatPercent(row.share)}

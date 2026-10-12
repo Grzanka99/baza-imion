@@ -1,9 +1,11 @@
 import { join, normalize } from "node:path"
 
 import {
-  FIRST_YEAR,
-  LAST_YEAR,
+  DATASETS,
+  DATASET_YEARS,
+  defaultYear,
   type ApiError,
+  type Dataset,
   type SexFilter,
   type SortKey,
   type SortOrder,
@@ -44,6 +46,19 @@ function integer(
   return value
 }
 
+function dataset(params: URLSearchParams) {
+  return oneOf<Dataset>(params, "dataset", DATASETS)
+}
+
+function yearFilter(params: URLSearchParams, selected: Dataset): YearFilter {
+  const years = DATASET_YEARS[selected]
+  const raw = params.get("year")
+  if (raw === null) return defaultYear(selected)
+  // Yearly population snapshots count the same people, so they are not summed.
+  if (raw === "all" && selected === "children") return "all"
+  return integer(params, "year", years[0], years[0], years.at(-1)!)
+}
+
 function api<T>(handler: (params: URLSearchParams) => Promise<T>) {
   return async (request: Request) => {
     try {
@@ -70,18 +85,16 @@ const server = Bun.serve({
   port: Number(process.env.PORT ?? 8787),
   // Bun's error page shows source code and file paths.
   development: false,
-  // Loading all twenty years on a cold cache takes about 250 upstream calls;
+  // A cold cache needs a few hundred upstream calls before the first answer;
   // 255 seconds is the most Bun allows.
   idleTimeout: 255,
   routes: {
     "/api/names": {
       GET: api((params) => {
-        const year: YearFilter =
-          (params.get("year") ?? "all") === "all"
-            ? "all"
-            : integer(params, "year", LAST_YEAR, FIRST_YEAR, LAST_YEAR)
+        const selected = dataset(params)
         return queryNames({
-          year,
+          dataset: selected,
+          year: yearFilter(params, selected),
           sex: oneOf<SexFilter>(params, "sex", ["all", "M", "K"]),
           search: params.get("q") ?? "",
           sort: oneOf<SortKey>(params, "sort", ["count", "name"]),
@@ -95,7 +108,7 @@ const server = Bun.serve({
       GET: api(async (params) => {
         const name = params.get("name")?.trim().toUpperCase()
         if (!name || name.length > 100) throw new BadRequest("name is required")
-        const trend = await queryTrend(name)
+        const trend = await queryTrend(dataset(params), name)
         if (!trend) throw new NotFound("Nie ma takiego imienia")
         return trend
       }),

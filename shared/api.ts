@@ -4,12 +4,28 @@ export type YearFilter = number | "all"
 export type SortKey = "count" | "name"
 export type SortOrder = "asc" | "desc"
 
-export const FIRST_YEAR = 2000
-export const LAST_YEAR = 2019
-export const YEARS = Array.from(
-  { length: LAST_YEAR - FIRST_YEAR + 1 },
-  (_, i) => FIRST_YEAR + i
-)
+/**
+ * `children`: names given to newborns in a year.
+ * `population`: names of everyone alive in the register, as a yearly snapshot.
+ */
+export type Dataset = "children" | "population"
+
+export const DEFAULT_DATASET: Dataset = "population"
+export const DATASETS: Dataset[] = ["population", "children"]
+
+function range(first: number, last: number) {
+  return Array.from({ length: last - first + 1 }, (_, i) => first + i)
+}
+
+export const DATASET_YEARS: Record<Dataset, number[]> = {
+  children: range(2000, 2025),
+  population: range(2019, 2026),
+}
+
+/** Births add up across years; population snapshots do not. */
+export function defaultYear(dataset: Dataset): YearFilter {
+  return dataset === "children" ? "all" : DATASET_YEARS.population.at(-1)!
+}
 
 export interface NameRow {
   /** Position by count within the selected year(s) and sex; ties share a rank. */
@@ -17,19 +33,20 @@ export interface NameRow {
   name: string
   sex: Sex
   count: number
-  /** Fraction of all children in the selected year(s) and sex. */
+  /** Fraction of all people in the selected year(s) and sex. */
   share: number
 }
 
 export interface NamesResponse {
   rows: NameRow[]
+  /** The requested page, or the last one if the request went past the end. */
   page: number
   perPage: number
   /** Names matching the search. */
   matchedNames: number
-  /** Children with a name matching the search. */
+  /** People with a name matching the search. */
   matchedCount: number
-  /** Names and children in the selected year(s) and sex, ignoring the search. */
+  /** Names and people in the selected year(s) and sex, ignoring the search. */
   scopeNames: number
   scopeCount: number
   /** Oldest upstream fetch used for this answer (ms since epoch). */

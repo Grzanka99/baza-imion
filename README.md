@@ -1,8 +1,12 @@
 # Baza imion
 
-Wyszukiwarka i ranking imion nadanych dzieciom w Polsce w latach 2000–2019,
-na podstawie [danych z rejestru PESEL](https://api.dane.gov.pl/1.4/resources/21458,imiona-nadane-dzieciom-w-polsce-w-latach-2000-2019-imie-pierwsze)
-udostępnianych przez dane.gov.pl.
+Wyszukiwarka i ranking imion w Polsce na podstawie danych z rejestru PESEL
+udostępnianych przez dane.gov.pl:
+
+- **Cała populacja** – imiona wszystkich żyjących osób, stan na styczeń
+  każdego roku od 2019 ([zbiór 1667](https://dane.gov.pl/pl/dataset/1667)).
+- **Noworodki** – imiona nadane dzieciom w latach 2000–2025
+  ([zbiór 219](https://dane.gov.pl/pl/dataset/219)).
 
 ## Uruchomienie
 
@@ -39,5 +43,8 @@ bun run start
 
 | Endpoint | Parametry |
 |---|---|
-| `GET /api/names` | `year` (2000–2019 lub `all`), `sex` (`all`, `M`, `K`), `q`, `sort` (`count`, `name`), `order` (`desc`, `asc`), `page`, `perPage` |
-| `GET /api/trend` | `name` |
+| `GET /api/names` | `dataset` (`population`, `children`), `year` (rok lub `all` dla noworodków), `sex` (`all`, `M`, `K`), `q`, `sort` (`count`, `name`), `order` (`desc`, `asc`), `page`, `perPage` |
+| `GET /api/trend` | `dataset`, `name` |
+
+Nowy rocznik danych wymaga dopisania identyfikatorów plików w
+`server/sources.ts` i roku w `shared/api.ts`.

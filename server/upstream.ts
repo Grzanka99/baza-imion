@@ -1,6 +1,9 @@
-import { FIRST_YEAR, LAST_YEAR, type Sex } from "../shared/api"
+import type { Sex } from "../shared/api"
 
+// Names given to children in 2000-2019, one row per year, name and sex.
 const DATA_URL = "https://api.dane.gov.pl/1.4/resources/21458/data"
+const FIRST_YEAR = 2000
+const LAST_YEAR = 2019
 const PAGE_SIZE = 100
 const MAX_CONCURRENT = 4
 const ATTEMPTS = 3
@@ -80,7 +83,21 @@ async function withSlot<T>(task: () => Promise<T>): Promise<T> {
   }
 }
 
-async function fetchPage(q: string, page: number): Promise<DataPage> {
+async function withRetries<T>(task: () => Promise<T>): Promise<T> {
+  let lastError: unknown
+  for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
+    if (attempt > 0) await Bun.sleep(500 * 2 ** attempt)
+    try {
+      // The slot is held until the body has arrived, not just the headers.
+      return await withSlot(task)
+    } catch (error) {
+      lastError = error
+    }
+  }
+  throw lastError
+}
+
+function fetchPage(q: string, page: number): Promise<DataPage> {
   const url = new URL(DATA_URL)
   url.searchParams.set("q", q)
   // A total order, so pages never overlap or skip rows.
@@ -88,33 +105,19 @@ async function fetchPage(q: string, page: number): Promise<DataPage> {
   url.searchParams.set("per_page", String(PAGE_SIZE))
   url.searchParams.set("page", String(page))
 
-  let lastError: unknown
-  for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
-    if (attempt > 0) await Bun.sleep(500 * 2 ** attempt)
-    try {
-      // The slot is held until the body has arrived, not just the headers.
-      return await withSlot(async () => {
-        const response = await fetch(url, {
-          signal: AbortSignal.timeout(20_000),
-        })
-        if (!response.ok) {
-          throw new Error(`dane.gov.pl: HTTP ${response.status}`)
-        }
-        const page = (await response.json()) as DataPage
-        if (
-          !Number.isInteger(page?.meta?.count) ||
-          page.meta.count < 0 ||
-          !Array.isArray(page.data)
-        ) {
-          throw new Error("dane.gov.pl: unexpected response")
-        }
-        return page
-      })
-    } catch (error) {
-      lastError = error
+  return withRetries(async () => {
+    const response = await fetch(url, { signal: AbortSignal.timeout(20_000) })
+    if (!response.ok) throw new Error(`dane.gov.pl: HTTP ${response.status}`)
+    const body = (await response.json()) as DataPage
+    if (
+      !Number.isInteger(body?.meta?.count) ||
+      body.meta.count < 0 ||
+      !Array.isArray(body.data)
+    ) {
+      throw new Error("dane.gov.pl: unexpected response")
     }
-  }
-  throw lastError
+    return body
+  })
 }
 
 /** Fetches every row matching an Elasticsearch query string, across all pages. */
@@ -136,4 +139,80 @@ export async function fetchRows(q: string): Promise<UpstreamRow[]> {
     )
   }
   return rows
+}
+
+function parseCsv(text: string): string[][] {
+  const rows: string[][] = []
+  let row: string[] = []
+  let field = ""
+  let quoted = false
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i]
+    if (quoted) {
+      if (char !== '"') field += char
+      else if (text[i + 1] === '"') field += text[i++]
+      else quoted = false
+    } else if (char === '"') {
+      quoted = true
+    } else if (char === ",") {
+      row.push(field)
+      field = ""
+    } else if (char === "\n") {
+      row.push(field)
+      rows.push(row)
+      row = []
+      field = ""
+    } else if (char !== "\r") {
+      field += char
+    }
+  }
+  if (field !== "" || row.length > 0) rows.push([...row, field])
+  return rows
+}
+
+/**
+ * Fetches a whole one-sex list of names and counts as CSV. These lists run to
+ * tens of thousands of rows, past what the paged API can reach (row 10,000).
+ * Columns are name, optionally sex, then count; header wording varies by year.
+ */
+export async function fetchNameCounts(
+  resourceId: number,
+  sex: Sex
+): Promise<[name: string, count: number][]> {
+  const text = await withRetries(async () => {
+    const response = await fetch(
+      `https://api.dane.gov.pl/resources/${resourceId}/csv`,
+      { signal: AbortSignal.timeout(60_000) }
+    )
+    if (!response.ok) throw new Error(`dane.gov.pl: HTTP ${response.status}`)
+    return response.text()
+  })
+
+  const [header, ...lines] = parseCsv(text.replace(/^\uFEFF/, ""))
+  const width = header?.length
+  if (width !== 2 && width !== 3) {
+    throw new Error(`dane.gov.pl: unexpected columns in resource ${resourceId}`)
+  }
+
+  const counts = new Map<string, number>()
+  for (const line of lines) {
+    if (line.length === 1 && line[0].trim() === "") continue
+    const name = line[0].trim().toUpperCase()
+    const count = Number(line[width - 1])
+    if (
+      line.length !== width ||
+      line[width - 1].trim() === "" ||
+      !Number.isInteger(count) ||
+      count < 1 ||
+      (width === 3 && !line[1].trim().toUpperCase().startsWith(sex))
+    ) {
+      throw new Error(`dane.gov.pl: unexpected row in resource ${resourceId}`)
+    }
+    // A few files carry a row with a blank name.
+    if (name !== "") counts.set(name, (counts.get(name) ?? 0) + count)
+  }
+  if (counts.size === 0) {
+    throw new Error(`dane.gov.pl: no rows in resource ${resourceId}`)
+  }
+  return [...counts]
 }

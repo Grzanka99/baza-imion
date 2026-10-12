@@ -3,6 +3,7 @@ import { X } from "lucide-react"
 
 import { NameTrend } from "@/components/name-trend"
 import { NamesTable } from "@/components/names-table"
+import { Pagination } from "@/components/pagination"
 import { SearchInput } from "@/components/search-input"
 import { Button } from "@/components/ui/button"
 import {
@@ -14,7 +15,9 @@ import {
 } from "@/components/ui/select"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useApi } from "@/hooks/use-api"
+import { naturalOrder, useView } from "@/hooks/use-view"
 import {
+  PEOPLE_NOUN,
   SEX_LABEL,
   formatDate,
   formatNumber,
@@ -22,46 +25,44 @@ import {
   plural,
 } from "@/lib/format"
 import {
-  YEARS,
+  DATASET_YEARS,
+  defaultYear,
+  type Dataset,
   type NamesResponse,
   type SexFilter,
   type SortKey,
-  type SortOrder,
 } from "../shared/api"
 
 const PER_PAGE = 25
-const YEAR_OPTIONS = [...YEARS].reverse()
 
 export function App() {
-  const [search, setSearch] = useState("")
-  const [sex, setSex] = useState<SexFilter>("all")
-  const [year, setYear] = useState("all")
-  const [sort, setSort] = useState<SortKey>("count")
-  const [order, setOrder] = useState<SortOrder>("desc")
-  const [page, setPage] = useState(1)
-  const [selected, setSelected] = useState<string | null>(null)
+  const [view, update] = useView()
+  const { dataset, search, sex, year, sort, order, page } = view
   // Remounts the search box, which owns the typed text.
   const [resetCount, setResetCount] = useState(0)
 
   const filtered =
     search !== "" ||
     sex !== "all" ||
-    year !== "all" ||
+    year !== defaultYear(dataset) ||
     sort !== "count" ||
     order !== "desc"
 
   function resetFilters() {
-    setSearch("")
-    setSex("all")
-    setYear("all")
-    setSort("count")
-    setOrder("desc")
-    setPage(1)
+    update({
+      search: "",
+      sex: "all",
+      year: defaultYear(dataset),
+      sort: "count",
+      order: "desc",
+      page: 1,
+    })
     setResetCount(resetCount + 1)
   }
 
   const params = new URLSearchParams({
-    year,
+    dataset,
+    year: String(year),
     sex,
     q: search,
     sort,
@@ -72,28 +73,48 @@ export function App() {
   const { data, error, loading } = useApi<NamesResponse>(`/api/names?${params}`)
 
   function changeSort(key: SortKey) {
-    if (key === sort) {
-      setOrder(order === "asc" ? "desc" : "asc")
-    } else {
-      setSort(key)
-      setOrder(key === "name" ? "asc" : "desc")
-    }
-    setPage(1)
+    const flipped = order === "asc" ? "desc" : "asc"
+    update({
+      sort: key,
+      order: key === sort ? flipped : naturalOrder(key),
+      page: 1,
+    })
   }
 
   const pageCount = data ? Math.ceil(data.matchedNames / PER_PAGE) || 1 : 1
+  // The server answers with the last page when the URL asks for one past it.
+  const shownPage = data && !loading ? data.page : page
 
   return (
     <div className="mx-auto flex h-svh max-w-3xl flex-col gap-6 p-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Baza imion</h1>
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold tracking-tight">Baza imion</h1>
+        <ToggleGroup
+          type="single"
+          variant="outline"
+          aria-label="Zbiór danych"
+          value={dataset}
+          onValueChange={(value) => {
+            if (!value) return
+            const next = value as Dataset
+            update({
+              dataset: next,
+              year: defaultYear(next),
+              page: 1,
+              name: null,
+            })
+          }}
+        >
+          <ToggleGroupItem value="population">Cała populacja</ToggleGroupItem>
+          <ToggleGroupItem value="children">Noworodki</ToggleGroupItem>
+        </ToggleGroup>
+      </header>
 
       <div className="flex flex-wrap items-center gap-3">
         <SearchInput
           key={resetCount}
-          onSearch={(query) => {
-            setSearch(query)
-            setPage(1)
-          }}
+          initialValue={search}
+          onSearch={(query) => update({ search: query, page: 1 })}
         />
         <ToggleGroup
           type="single"
@@ -101,28 +122,31 @@ export function App() {
           aria-label="Płeć"
           value={sex}
           onValueChange={(value) => {
-            if (!value) return
-            setSex(value as SexFilter)
-            setPage(1)
+            if (value) update({ sex: value as SexFilter, page: 1 })
           }}
         >
           <ToggleGroupItem value="all">Wszyscy</ToggleGroupItem>
-          <ToggleGroupItem value="M">{SEX_LABEL.M.many}</ToggleGroupItem>
-          <ToggleGroupItem value="K">{SEX_LABEL.K.many}</ToggleGroupItem>
+          <ToggleGroupItem value="M">
+            {SEX_LABEL[dataset].M.many}
+          </ToggleGroupItem>
+          <ToggleGroupItem value="K">
+            {SEX_LABEL[dataset].K.many}
+          </ToggleGroupItem>
         </ToggleGroup>
         <Select
-          value={year}
-          onValueChange={(value) => {
-            setYear(value)
-            setPage(1)
-          }}
+          value={String(year)}
+          onValueChange={(value) =>
+            update({ year: value === "all" ? "all" : Number(value), page: 1 })
+          }
         >
           <SelectTrigger aria-label="Rok" className="w-40">
             <SelectValue />
           </SelectTrigger>
           <SelectContent position="popper" align="start" className="max-h-72">
-            <SelectItem value="all">Wszystkie lata</SelectItem>
-            {YEAR_OPTIONS.map((option) => (
+            {dataset === "children" && (
+              <SelectItem value="all">Wszystkie lata</SelectItem>
+            )}
+            {DATASET_YEARS[dataset].toReversed().map((option) => (
               <SelectItem key={option} value={String(option)}>
                 {option}
               </SelectItem>
@@ -135,7 +159,7 @@ export function App() {
         <p className="text-sm text-muted-foreground" aria-live="polite">
           {error ??
             (data
-              ? summary(data)
+              ? summary(dataset, data)
               : "Pobieram dane z dane.gov.pl, to może chwilę potrwać…")}
         </p>
         {filtered && (
@@ -147,53 +171,43 @@ export function App() {
       </div>
 
       <NamesTable
+        dataset={dataset}
         rows={error ? [] : data?.rows}
         perPage={PER_PAGE}
         loading={loading}
         sort={sort}
         order={order}
         onSort={changeSort}
-        onSelect={setSelected}
+        onSelect={(name) => update({ name })}
       />
 
-      <div className="flex items-center justify-between gap-3">
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={loading || page <= 1}
-          onClick={() => setPage(page - 1)}
-        >
-          Poprzednia
-        </Button>
-        <span className="text-sm text-muted-foreground tabular-nums">
-          Strona {page} z {pageCount}
-        </span>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={loading || page >= pageCount}
-          onClick={() => setPage(page + 1)}
-        >
-          Następna
-        </Button>
-      </div>
+      <Pagination
+        page={shownPage}
+        pageCount={pageCount}
+        disabled={loading}
+        onPage={(next) => update({ page: next })}
+      />
 
       <footer className="mt-auto shrink-0 text-xs text-muted-foreground">
         Źródło: rejestr PESEL, dane.gov.pl
         {data && ` · pobrano ${formatDate(data.fetchedAt)}`}
       </footer>
 
-      <NameTrend name={selected} onClose={() => setSelected(null)} />
+      <NameTrend
+        dataset={dataset}
+        name={view.name}
+        onClose={() => update({ name: null })}
+      />
     </div>
   )
 }
 
-function summary(data: NamesResponse) {
+function summary(dataset: Dataset, data: NamesResponse) {
   const names = `${formatNumber(data.matchedNames)} ${plural(data.matchedNames, "imię", "imiona", "imion")}`
-  const children = `${formatNumber(data.matchedCount)} ${plural(data.matchedCount, "dziecko", "dzieci", "dzieci")}`
-  if (data.matchedNames === data.scopeNames) return `${names} · ${children}`
+  const people = `${formatNumber(data.matchedCount)} ${plural(data.matchedCount, ...PEOPLE_NOUN[dataset])}`
+  if (data.matchedNames === data.scopeNames) return `${names} · ${people}`
   const share = data.scopeCount ? data.matchedCount / data.scopeCount : 0
-  return `${names} · ${children} · ${formatPercent(share)} wszystkich`
+  return `${names} · ${people} · ${formatPercent(share)} wszystkich`
 }
 
 export default App
