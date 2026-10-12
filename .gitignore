@@ -1,0 +1,39 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Backups, temporary files, test coverage
+*~
+*.bak
+*.tmp
+coverage
+Thumbs.db
+Desktop.ini
+
+# Secrets
+.env
+.env.*
+
+# API response cache, when Turso is not configured
+cache.sqlite*
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
