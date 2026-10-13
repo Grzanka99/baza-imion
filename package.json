@@ -8,8 +8,8 @@
     "dev:api": "bun --watch server/index.ts",
     "build": "tsc -b && vite build",
     "start": "bun server/index.ts",
-    "lint": "eslint .",
-    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "lint": "oxlint",
+    "format": "oxfmt \"**/*.{ts,tsx}\"",
     "typecheck": "tsc -b"
   },
   "dependencies": {
@@ -28,19 +28,14 @@
     "tw-animate-css": "^1.4.0"
   },
   "devDependencies": {
-    "@eslint/js": "^10",
     "@types/bun": "^1.4.3",
     "@types/node": "^24",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6",
-    "eslint": "^10",
-    "eslint-plugin-react-hooks": "^7.1.1",
-    "globals": "^17",
-    "prettier": "^3.9.9",
-    "prettier-plugin-tailwindcss": "^0.8.1",
+    "oxfmt": "^0.73.0",
+    "oxlint": "^1.88.0",
     "typescript": "~6.0.2",
-    "typescript-eslint": "^8",
     "vite": "^8"
   }
 }
