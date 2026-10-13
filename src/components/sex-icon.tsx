@@ -1,20 +1,23 @@
 import { Mars, Venus } from "lucide-react"
 
-import { SEX_COLOR } from "@/lib/format"
+import { SEX_COLOR, SEX_LABEL, formatNumber } from "@/lib/format"
 import { cn } from "@/lib/utils"
-import type { Sex } from "../../shared/api"
+import type { Dataset, NameRow, Sex } from "../../shared/api"
 
 const ICON = { M: Mars, K: Venus }
 
-export function SexIcon({
+// Below this share of a name's bearers, a sex is drawn faintly: three women
+// named Piotr should not read as "a name for both".
+const MINOR_SHARE = 0.01
+
+function SexIcon({
   sex,
   label,
-  faint = false,
+  faint,
 }: {
   sex: Sex
   label: string
-  /** For a sex that barely figures among the bearers of a name. */
-  faint?: boolean
+  faint: boolean
 }) {
   const Icon = ICON[sex]
   return (
@@ -28,6 +31,22 @@ export function SexIcon({
         className="size-4"
         style={{ color: SEX_COLOR[sex] }}
       />
+    </span>
+  )
+}
+
+/** The icons for who bears a name, the larger group first. */
+export function SexIcons({ dataset, row }: { dataset: Dataset; row: NameRow }) {
+  return (
+    <span className="inline-flex items-center gap-0.5">
+      {row.sexes.map(({ sex, count }) => (
+        <SexIcon
+          key={sex}
+          sex={sex}
+          label={`${SEX_LABEL[dataset][sex].one}: ${formatNumber(count)}`}
+          faint={count < row.count * MINOR_SHARE}
+        />
+      ))}
     </span>
   )
 }

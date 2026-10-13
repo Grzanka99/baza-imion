@@ -36,7 +36,7 @@ export function SearchInput({
   }
 
   return (
-    <div className="relative min-w-0 flex-1 sm:min-w-48">
+    <div className="relative min-w-0 flex-1 sm:min-w-40">
       <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
       {/* The browser's own clear button is hidden in favour of ours. */}
       <Input

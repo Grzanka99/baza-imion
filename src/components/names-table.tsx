@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react"
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
 
 import { FavoriteButton } from "@/components/favorite-button"
-import { SexIcon } from "@/components/sex-icon"
+import { SexIcons } from "@/components/sex-icon"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
@@ -13,18 +13,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  SEX_LABEL,
-  displayName,
-  formatNumber,
-  formatPercent,
-} from "@/lib/format"
+import { displayName, formatNumber, formatPercent } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import type { Dataset, NameRow, SortKey, SortOrder } from "../../shared/api"
-
-// Below this share of a name's bearers, a sex is drawn faintly: three women
-// named Piotr should not read as "a name for both".
-const MINOR_SHARE = 0.01
 
 interface NamesTableProps {
   dataset: Dataset
@@ -153,16 +144,7 @@ export function NamesTable({
                 {formatNumber(row.count)}
               </TableCell>
               <TableCell className="text-center">
-                <span className="inline-flex items-center gap-0.5">
-                  {row.sexes.map(({ sex, count }) => (
-                    <SexIcon
-                      key={sex}
-                      sex={sex}
-                      label={`${SEX_LABEL[dataset][sex].one}: ${formatNumber(count)}`}
-                      faint={count < row.count * MINOR_SHARE}
-                    />
-                  ))}
-                </span>
+                <SexIcons dataset={dataset} row={row} />
               </TableCell>
               <TableCell className="text-right text-muted-foreground tabular-nums">
                 {formatPercent(row.share)}
