@@ -92,6 +92,7 @@ export const handleNames = api((params) => {
     order: oneOf<SortOrder>(params, "order", ["desc", "asc"]),
     page: integer(params, "page", 1, 1, Number.MAX_SAFE_INTEGER),
     perPage: integer(params, "perPage", 25, 1, MAX_PER_PAGE),
+    random: params.get("random") === "1",
   })
 })
 

@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { X } from "lucide-react"
+import { Dices, X } from "lucide-react"
 
 import { Collapse } from "@/components/collapse"
 import { NameTrend } from "@/components/name-trend"
@@ -21,6 +21,7 @@ import { naturalOrder, useView } from "@/hooks/use-view"
 import {
   PEOPLE_NOUN,
   SEX_LABEL,
+  displayName,
   formatNumber,
   formatPercent,
   plural,
@@ -81,6 +82,32 @@ export function App() {
       order: key === sort ? flipped : naturalOrder(key),
       page: 1,
     })
+  }
+
+  const [drawing, setDrawing] = useState(false)
+
+  /** Searches for an uncommon name drawn at random from the current selection. */
+  async function drawName() {
+    setDrawing(true)
+    try {
+      const query = new URLSearchParams({
+        dataset,
+        year: String(year),
+        sex,
+        random: "1",
+      })
+      const response = await fetch(`/api/names?${query}`, { cache: "no-store" })
+      const drawn: NamesResponse = await response.json()
+      if (response.ok && drawn.rows[0]) {
+        update({ search: displayName(drawn.rows[0].name), page: 1 })
+        // The search box owns its text, so it is remounted to show the name.
+        setResetCount((count) => count + 1)
+      }
+    } catch {
+      // Nothing opens; the button can simply be pressed again.
+    } finally {
+      setDrawing(false)
+    }
   }
 
   const pageCount = data ? Math.ceil(data.matchedNames / PER_PAGE) || 1 : 1
@@ -183,6 +210,16 @@ export function App() {
                 ))}
               </SelectContent>
             </Select>
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label="Wylosuj rzadkie imię"
+              title="Wylosuj rzadkie imię"
+              disabled={drawing}
+              onClick={drawName}
+            >
+              <Dices />
+            </Button>
           </div>
         </Collapse>
 

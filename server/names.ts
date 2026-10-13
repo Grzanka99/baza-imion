@@ -106,6 +106,22 @@ async function loadScope(
   return scope
 }
 
+// A random pick skips the most popular names and the near one-offs, which are
+// mostly rare spellings: what is left is uncommon but in real use.
+const POPULAR_SHARE = 0.05
+const MIN_RANDOM_COUNT = 5
+
+function pickRare(rows: RankedRow[]): RankedRow[] {
+  if (rows.length === 0) return []
+  // Rows are ordered by count, highest first.
+  const from = Math.ceil(rows.length * POPULAR_SHARE)
+  const firstTooRare = rows.findIndex((row) => row.count < MIN_RANDOM_COUNT)
+  const to = firstTooRare === -1 ? rows.length : firstTooRare
+  // A scope too small to have such a band offers everything it has.
+  const [low, high] = to > from ? [from, to] : [0, rows.length]
+  return [rows[low + Math.floor(Math.random() * (high - low))]]
+}
+
 export interface NamesQuery {
   dataset: Dataset
   year: YearFilter
@@ -115,6 +131,8 @@ export interface NamesQuery {
   order: SortOrder
   page: number
   perPage: number
+  /** Answer with one random uncommon name instead of a page of the list. */
+  random?: boolean
 }
 
 export async function queryNames(query: NamesQuery): Promise<NamesResponse> {
@@ -122,14 +140,19 @@ export async function queryNames(query: NamesQuery): Promise<NamesResponse> {
 
   // The scope's rows are shared between requests, so they are never reordered
   // in place.
-  const needle = fold(query.search.trim())
+  const needle = query.random ? "" : fold(query.search.trim())
   let matched = needle
     ? scope.rows.filter((row) => row.folded.includes(needle))
     : scope.rows
-  if (query.sort === "name") {
+  if (query.random) {
+    matched = pickRare(scope.rows)
+  } else if (query.sort === "name") {
     matched = [...matched].sort((a, b) => a.nameOrder - b.nameOrder)
   }
-  if (query.order !== (query.sort === "name" ? "asc" : "desc")) {
+  if (
+    !query.random &&
+    query.order !== (query.sort === "name" ? "asc" : "desc")
+  ) {
     matched = [...matched].reverse()
   }
 
@@ -149,9 +172,10 @@ export async function queryNames(query: NamesQuery): Promise<NamesResponse> {
     page,
     perPage: query.perPage,
     matchedNames: matched.length,
-    matchedCount: needle
-      ? matched.reduce((sum, row) => sum + row.count, 0)
-      : scope.count,
+    matchedCount:
+      needle || query.random
+        ? matched.reduce((sum, row) => sum + row.count, 0)
+        : scope.count,
     scopeNames: scope.rows.length,
     scopeCount: scope.count,
     fetchedAt: scope.fetchedAt,
