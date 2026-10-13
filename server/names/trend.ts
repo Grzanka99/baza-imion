@@ -1,0 +1,38 @@
+import {
+  DATASET_YEARS,
+  type Dataset,
+  type TrendResponse,
+} from "../../shared/api.js"
+import { loadYear } from "./years.js"
+
+/**
+ * Built from the cached years, so asking about a name never adds upstream
+ * calls or cache entries of its own. Unknown names give `undefined`.
+ */
+export async function queryTrend(
+  dataset: Dataset,
+  name: string
+): Promise<TrendResponse | undefined> {
+  const years = DATASET_YEARS[dataset]
+  const loaded = await Promise.all(years.map((year) => loadYear(dataset, year)))
+
+  const points = years.map((year) => ({ year, M: 0, K: 0 }))
+  const totals = { M: 0, K: 0 }
+  loaded.forEach((slices, index) => {
+    for (const slice of slices) {
+      slice.forEach((rowName, sex, count) => {
+        if (rowName !== name) return
+        points[index][sex] += count
+        totals[sex] += count
+      })
+    }
+  })
+  if (totals.M + totals.K === 0) return undefined
+
+  return {
+    name,
+    points,
+    totals,
+    fetchedAt: Math.min(...loaded.flat().map((slice) => slice.fetchedAt)),
+  }
+}

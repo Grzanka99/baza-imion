@@ -1,0 +1,38 @@
+import type { Sex } from "../../shared/api.js"
+import { isBlank, toCount } from "./csv.js"
+import { fetchCsv } from "./download.js"
+
+/**
+ * Fetches a whole one-sex list of names and counts. Columns are name,
+ * optionally sex, then count; header wording varies by year.
+ */
+export async function fetchNameCounts(
+  resourceId: number,
+  sex: Sex
+): Promise<[name: string, count: number][]> {
+  const [header, ...lines] = await fetchCsv(resourceId)
+  const width = header?.length
+  if (width !== 2 && width !== 3) {
+    throw new Error(`dane.gov.pl: unexpected columns in resource ${resourceId}`)
+  }
+
+  const counts = new Map<string, number>()
+  for (const line of lines) {
+    if (isBlank(line)) continue
+    const name = line[0].trim().toUpperCase()
+    const count = toCount(line[width - 1])
+    if (
+      line.length !== width ||
+      !(count >= 1) ||
+      (width === 3 && !line[1].trim().toUpperCase().startsWith(sex))
+    ) {
+      throw new Error(`dane.gov.pl: unexpected row in resource ${resourceId}`)
+    }
+    // A few files carry a row with a blank name.
+    if (name !== "") counts.set(name, (counts.get(name) ?? 0) + count)
+  }
+  if (counts.size === 0) {
+    throw new Error(`dane.gov.pl: no rows in resource ${resourceId}`)
+  }
+  return [...counts]
+}

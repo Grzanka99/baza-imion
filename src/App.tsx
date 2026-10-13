@@ -1,42 +1,25 @@
 import { useState } from "react"
-import { Dices, Heart, X } from "lucide-react"
 
+import { namesUrl } from "@/api-client/urls"
+import { useApi } from "@/api-client/use-api"
 import { Collapse } from "@/components/collapse"
-import { FavoritesPanel } from "@/components/favorites-panel"
-import { NameTrend } from "@/components/name-trend"
-import { NamesTable } from "@/components/names-table"
-import { Pagination } from "@/components/pagination"
-import { SearchInput } from "@/components/search-input"
-import { Button } from "@/components/ui/button"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { useApi } from "@/hooks/use-api"
-import { useFavorites } from "@/hooks/use-favorites"
+import { FavoritesPanel } from "@/features/favorites/favorites-panel"
+import { OnlyFavoritesButton } from "@/features/favorites/only-favorites-button"
+import { useFavorites } from "@/features/favorites/use-favorites"
+import { DatasetToggle } from "@/features/filters/dataset-toggle"
+import { RandomNameButton } from "@/features/filters/random-name-button"
+import { SearchInput } from "@/features/filters/search-input"
+import { SexToggle } from "@/features/filters/sex-toggle"
+import { YearSelect } from "@/features/filters/year-select"
+import { NameTrend } from "@/features/name-trend/name-trend"
+import { NamesTable } from "@/features/names-list/names-table"
+import { Pagination } from "@/features/names-list/pagination"
+import { ResultSummary } from "@/features/names-list/result-summary"
 import { usePhoneBar } from "@/hooks/use-phone-bar"
 import { naturalOrder, useView } from "@/hooks/use-view"
-import {
-  PEOPLE_NOUN,
-  SEX_LABEL,
-  displayName,
-  formatNumber,
-  formatPercent,
-  plural,
-} from "@/lib/format"
+import { displayName } from "@/lib/format"
 import { cn } from "@/lib/utils"
-import {
-  DATASET_YEARS,
-  defaultYear,
-  type Dataset,
-  type NamesResponse,
-  type SexFilter,
-  type SortKey,
-} from "../shared/api"
+import { defaultYear, type NamesResponse, type SortKey } from "../shared/api"
 
 const PER_PAGE = 25
 
@@ -47,6 +30,20 @@ export function App() {
   const [resetCount, setResetCount] = useState(0)
   const { bar, collapsed, scrollToList } = usePhoneBar()
   const favorites = useFavorites()
+
+  const { data, error, loading } = useApi<NamesResponse>(
+    namesUrl({
+      dataset,
+      year,
+      sex,
+      search,
+      sort,
+      order,
+      page,
+      perPage: PER_PAGE,
+      names: view.favorites ? favorites.names : undefined,
+    })
+  )
 
   const filtered =
     search !== "" ||
@@ -66,21 +63,8 @@ export function App() {
       page: 1,
       favorites: false,
     })
-    setResetCount(resetCount + 1)
+    setResetCount((count) => count + 1)
   }
-
-  const params = new URLSearchParams({
-    dataset,
-    year: String(year),
-    sex,
-    q: search,
-    sort,
-    order,
-    page: String(page),
-    perPage: String(PER_PAGE),
-  })
-  if (view.favorites) params.set("names", favorites.names.join(","))
-  const { data, error, loading } = useApi<NamesResponse>(`/api/names?${params}`)
 
   function changeSort(key: SortKey) {
     const flipped = order === "asc" ? "desc" : "asc"
@@ -91,30 +75,10 @@ export function App() {
     })
   }
 
-  const [drawing, setDrawing] = useState(false)
-
-  /** Searches for an uncommon name drawn at random from the current selection. */
-  async function drawName() {
-    setDrawing(true)
-    try {
-      const query = new URLSearchParams({
-        dataset,
-        year: String(year),
-        sex,
-        random: "1",
-      })
-      const response = await fetch(`/api/names?${query}`, { cache: "no-store" })
-      const drawn: NamesResponse = await response.json()
-      if (response.ok && drawn.rows[0]) {
-        update({ search: displayName(drawn.rows[0].name), page: 1 })
-        // The search box owns its text, so it is remounted to show the name.
-        setResetCount((count) => count + 1)
-      }
-    } catch {
-      // Nothing opens; the button can simply be pressed again.
-    } finally {
-      setDrawing(false)
-    }
+  /** Searches for the name the dice came up with. */
+  function searchFor(name: string) {
+    update({ search: displayName(name), page: 1 })
+    setResetCount((count) => count + 1)
   }
 
   const pageCount = data ? Math.ceil(data.matchedNames / PER_PAGE) || 1 : 1
@@ -122,26 +86,12 @@ export function App() {
   const shownPage = data && !loading ? data.page : page
 
   const sexToggle = (className: string) => (
-    <ToggleGroup
-      type="single"
-      variant="outline"
-      aria-label="Płeć"
+    <SexToggle
+      dataset={dataset}
+      sex={sex}
       className={className}
-      value={sex}
-      onValueChange={(value) => {
-        if (value) update({ sex: value as SexFilter, page: 1 })
-      }}
-    >
-      <ToggleGroupItem value="all" className="flex-1 sm:flex-none">
-        Wszyscy
-      </ToggleGroupItem>
-      <ToggleGroupItem value="M" className="flex-1 sm:flex-none">
-        {SEX_LABEL[dataset].M.many}
-      </ToggleGroupItem>
-      <ToggleGroupItem value="K" className="flex-1 sm:flex-none">
-        {SEX_LABEL[dataset].K.many}
-      </ToggleGroupItem>
-    </ToggleGroup>
+      onChange={(next) => update({ sex: next, page: 1 })}
+    />
   )
 
   return (
@@ -165,27 +115,17 @@ export function App() {
               <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
                 Baza imion
               </h1>
-              <ToggleGroup
-                type="single"
-                variant="outline"
-                aria-label="Zbiór danych"
-                value={dataset}
-                onValueChange={(value) => {
-                  if (!value) return
-                  const next = value as Dataset
+              <DatasetToggle
+                dataset={dataset}
+                onChange={(next) =>
                   update({
                     dataset: next,
                     year: defaultYear(next),
                     page: 1,
                     name: null,
                   })
-                }}
-              >
-                <ToggleGroupItem value="population">
-                  Cała populacja
-                </ToggleGroupItem>
-                <ToggleGroupItem value="children">Noworodki</ToggleGroupItem>
-              </ToggleGroup>
+                }
+              />
             </header>
           </Collapse>
 
@@ -197,80 +137,34 @@ export function App() {
                 onSearch={(query) => update({ search: query, page: 1 })}
               />
               {sexToggle("hidden sm:flex")}
-              <Select
-                value={String(year)}
-                onValueChange={(value) =>
-                  update({
-                    year: value === "all" ? "all" : Number(value),
-                    page: 1,
-                  })
-                }
-              >
-                <SelectTrigger aria-label="Rok" className="w-auto sm:w-40">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent
-                  position="popper"
-                  align="start"
-                  className="max-h-72"
-                >
-                  {dataset === "children" && (
-                    <SelectItem value="all">
-                      Wszystkie<span className="hidden sm:inline"> lata</span>
-                    </SelectItem>
-                  )}
-                  {DATASET_YEARS[dataset].toReversed().map((option) => (
-                    <SelectItem key={option} value={String(option)}>
-                      {option}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                variant="outline"
-                size="icon"
-                aria-label="Wylosuj rzadkie imię"
-                title="Wylosuj rzadkie imię"
-                disabled={drawing}
-                onClick={drawName}
-              >
-                <Dices />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                aria-pressed={view.favorites}
-                aria-label="Pokaż tylko ulubione"
-                title="Pokaż tylko ulubione"
-                className={cn("lg:hidden", view.favorites && "bg-muted")}
-                onClick={() => update({ favorites: !view.favorites, page: 1 })}
-              >
-                <Heart
-                  className={cn(
-                    view.favorites && "fill-rose-500 text-rose-500"
-                  )}
-                />
-              </Button>
+              <YearSelect
+                dataset={dataset}
+                year={year}
+                onChange={(next) => update({ year: next, page: 1 })}
+              />
+              <RandomNameButton
+                dataset={dataset}
+                year={year}
+                sex={sex}
+                onDraw={searchFor}
+              />
+              <OnlyFavoritesButton
+                active={view.favorites}
+                onToggle={() => update({ favorites: !view.favorites, page: 1 })}
+              />
             </div>
           </Collapse>
 
           <div className="sm:hidden">{sexToggle("w-full")}</div>
 
           <Collapse open={!collapsed} className="pt-3">
-            <div className="flex min-h-7 shrink-0 items-center justify-between gap-3">
-              <p className="text-sm text-muted-foreground" aria-live="polite">
-                {error ??
-                  (data
-                    ? summary(dataset, data)
-                    : "Pobieram dane z dane.gov.pl, to może chwilę potrwać…")}
-              </p>
-              {filtered && (
-                <Button variant="ghost" size="sm" onClick={resetFilters}>
-                  <X />
-                  Wyczyść filtry
-                </Button>
-              )}
-            </div>
+            <ResultSummary
+              dataset={dataset}
+              data={data}
+              error={error}
+              filtered={filtered}
+              onReset={resetFilters}
+            />
           </Collapse>
         </div>
 
@@ -321,14 +215,6 @@ export function App() {
       />
     </div>
   )
-}
-
-function summary(dataset: Dataset, data: NamesResponse) {
-  const names = `${formatNumber(data.matchedNames)} ${plural(data.matchedNames, "imię", "imiona", "imion")}`
-  const people = `${formatNumber(data.matchedCount)} ${plural(data.matchedCount, ...PEOPLE_NOUN[dataset])}`
-  if (data.matchedNames === data.scopeNames) return `${names} · ${people}`
-  const share = data.scopeCount ? data.matchedCount / data.scopeCount : 0
-  return `${names} · ${people} · ${formatPercent(share)} wszystkich`
 }
 
 export default App

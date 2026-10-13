@@ -1,7 +1,7 @@
 import { join, normalize } from "node:path"
 
 import type { ApiError } from "../shared/api.js"
-import { handleNames, handleTrend } from "./routes.js"
+import { handleNames, handleTrend } from "./http/handlers.js"
 
 // The standalone server for local use: `bun run dev` and `bun run start`.
 // On Vercel the frontend is static and api/*.ts serve the same handlers.

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react"
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
 
-import { FavoriteButton } from "@/components/favorite-button"
+import { FavoriteButton } from "@/features/favorites/favorite-button"
 import { SexIcons } from "@/components/sex-icon"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/table"
 import { displayName, formatNumber, formatPercent } from "@/lib/format"
 import { cn } from "@/lib/utils"
-import type { Dataset, NameRow, SortKey, SortOrder } from "../../shared/api"
+import type { Dataset, NameRow, SortKey, SortOrder } from "../../../shared/api"
 
 interface NamesTableProps {
   dataset: Dataset

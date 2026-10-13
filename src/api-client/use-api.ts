@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 
-import { isFresh, recall, remember } from "@/lib/answer-cache"
+import { isFresh, recall, remember } from "@/api-client/answer-cache"
 
 const FALLBACK_ERROR = "Nie udało się pobrać danych"
 

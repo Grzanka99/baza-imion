@@ -1,6 +1,7 @@
 import { Mars, Venus } from "lucide-react"
 
-import { SEX_COLOR, SEX_LABEL, formatNumber } from "@/lib/format"
+import { formatNumber } from "@/lib/format"
+import { SEX_COLOR, SEX_LABEL } from "@/lib/labels"
 import { cn } from "@/lib/utils"
 import type { Dataset, NameRow, Sex } from "../../shared/api"
 

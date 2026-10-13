@@ -56,6 +56,27 @@ z dane.gov.pl od zera.
   całymi plikami CSV, liczy miejsca w rankingu, udziały i sumy.
 - `shared/` – typy wspólne dla obu części.
 
+```
+server/
+  index.ts      samodzielny serwer Bun (lokalnie i `bun run start`)
+  http/         obsługa zapytań: odczyt parametrów, odpowiedzi JSON, błędy
+  names/        dane o imionach: wczytywanie roczników, ranking, lista, trend
+  upstream/     pobieranie i czytanie plików CSV z dane.gov.pl
+  cache/        pamięć podręczna: pamięć procesu i baza Turso
+
+src/
+  App.tsx       układ strony; łączy stan widoku z komponentami
+  api-client/   zapytania do serwera i pamięć odpowiedzi w przeglądarce
+  features/
+    filters/      zbiór danych, wyszukiwarka, płeć, rok, losowanie imienia
+    names-list/   tabela imion, podsumowanie, stronicowanie
+    name-trend/   panel imienia: wykres i tabela rok po roku
+    favorites/    ulubione imiona
+  components/   elementy wspólne; `ui/` to komponenty shadcn/ui
+  hooks/        stan widoku w adresie strony, pasek na telefonie
+  lib/          formatowanie liczb i imion, etykiety
+```
+
 Żeby ograniczyć liczbę zapytań, odpowiedzi są zapamiętywane na każdym etapie:
 
 | Gdzie | Na jak długo | Co oszczędza |
@@ -71,4 +92,4 @@ z dane.gov.pl od zera.
 | `GET /api/trend` | `dataset`, `name` |
 
 Nowy rocznik danych wymaga dopisania identyfikatorów plików w
-`server/sources.ts` i roku w `shared/api.ts`.
+`server/upstream/resource-ids.ts` i roku w `shared/api.ts`.
