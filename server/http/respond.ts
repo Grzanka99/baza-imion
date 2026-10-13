@@ -9,30 +9,30 @@ import { BadRequest, NotFound } from "./errors.js"
 const CACHEABLE =
   "public, max-age=3600, s-maxage=604800, stale-while-revalidate=864000"
 
+function cacheControl(params: URLSearchParams) {
+  if (params.get("random") === "1") return "no-store"
+  return CACHEABLE
+}
+
+function failure(status: number, message: string) {
+  return Response.json({ error: message } satisfies ApiError, { status })
+}
+
 /** Turns a function of the query string into a handler that answers in JSON. */
 export function api<T>(handler: (params: URLSearchParams) => Promise<T>) {
   return async (request: Request) => {
     try {
       const params = new URL(request.url).searchParams
       return Response.json(await handler(params), {
-        headers: {
-          "Cache-Control":
-            params.get("random") === "1" ? "no-store" : CACHEABLE,
-        },
+        headers: { "Cache-Control": cacheControl(params) },
       })
     } catch (error) {
-      if (error instanceof BadRequest || error instanceof NotFound) {
-        return Response.json({ error: error.message } satisfies ApiError, {
-          status: error instanceof BadRequest ? 400 : 404,
-        })
-      }
-      console.error(error instanceof Error ? error.message : error)
-      return Response.json(
-        {
-          error: "Nie udało się pobrać danych z dane.gov.pl",
-        } satisfies ApiError,
-        { status: 502 }
-      )
+      if (error instanceof BadRequest) return failure(400, error.message)
+      if (error instanceof NotFound) return failure(404, error.message)
+      let detail = error
+      if (error instanceof Error) detail = error.message
+      console.error(detail)
+      return failure(502, "Nie udało się pobrać danych z dane.gov.pl")
     }
   }
 }

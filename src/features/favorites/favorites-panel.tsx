@@ -2,7 +2,7 @@ import { namesUrl } from "@/api-client/urls"
 import { useApi } from "@/api-client/use-api"
 import { SexIcons } from "@/components/sex-icon"
 import { FavoriteButton } from "@/features/favorites/favorite-button"
-import { displayName, formatNumber, formatPercent } from "@/lib/format"
+import { displayName, formatCount, formatPercent } from "@/lib/format"
 import type {
   Dataset,
   NamesResponse,
@@ -72,7 +72,7 @@ export function FavoritesPanel({
                 {displayName(name)}
               </button>
               <span className="text-right tabular-nums">
-                {row ? formatNumber(row.count) : "–"}
+                {formatCount(row?.count)}
               </span>
               <span className="text-center">
                 {row && <SexIcons dataset={dataset} row={row} />}

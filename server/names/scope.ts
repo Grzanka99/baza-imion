@@ -34,7 +34,8 @@ export async function loadScope(
   year: YearFilter,
   sex: SexFilter
 ): Promise<Scope> {
-  const years = year === "all" ? DATASET_YEARS[dataset] : [year]
+  let years = DATASET_YEARS[dataset]
+  if (year !== "all") years = [year]
   const slices = (
     await Promise.all(years.map((each) => loadYear(dataset, each, sex)))
   ).flat()
@@ -99,7 +100,8 @@ function rank(slices: Slice[], sex: SexFilter) {
   const count = rows.reduce((sum, row) => sum + row.count, 0)
   rows.forEach((row, index) => {
     const previous = rows[index - 1]
-    row.rank = previous?.count === row.count ? previous.rank : index + 1
+    row.rank = index + 1
+    if (previous?.count === row.count) row.rank = previous.rank
     row.share = row.count / count
   })
 

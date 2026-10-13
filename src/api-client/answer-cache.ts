@@ -13,7 +13,7 @@ const PREFIX = `${FAMILY}${__BUILD_ID__}:`
 const FRESH_MS = 7 * 24 * 60 * 60 * 1000
 const MAX_ENTRIES = 300
 
-interface Answer {
+export interface Answer {
   data: unknown
   /** When it was fetched (ms since epoch). */
   at: number

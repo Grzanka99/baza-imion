@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { FavoriteButton } from "@/features/favorites/favorite-button"
 import { TrendChart } from "@/features/name-trend/trend-chart"
 import { TrendTable } from "@/features/name-trend/trend-table"
-import { displayName, formatNumber } from "@/lib/format"
+import { displayName, formatCount, formatNumber } from "@/lib/format"
 import { SEX_LABEL } from "@/lib/labels"
 import type { Dataset, Sex, TrendResponse } from "../../../shared/api"
 
@@ -43,8 +43,13 @@ export function NameTrend({
   const { data, error, loading } = useApi<TrendResponse>(
     name && trendUrl(dataset, name)
   )
-  const trend = loading || error ? undefined : data
-  const sexes = trend ? SEXES.filter((sex) => trend.totals[sex] > 0) : []
+  let trend = data
+  if (loading || error) trend = undefined
+  const totals = trend?.totals ?? { M: 0, K: 0 }
+  const sexes = SEXES.filter((sex) => totals[sex] > 0)
+
+  let description = error ?? "Pobieram dane…"
+  if (trend) description = headline(dataset, trend, sexes)
 
   return (
     <Sheet open={name !== null} onOpenChange={(open) => !open && onClose()}>
@@ -56,11 +61,7 @@ export function NameTrend({
               <FavoriteButton active={favorite} onToggle={onToggleFavorite} />
             )}
           </SheetTitle>
-          <SheetDescription>
-            {trend
-              ? headline(dataset, trend, sexes)
-              : (error ?? "Pobieram dane…")}
-          </SheetDescription>
+          <SheetDescription>{description}</SheetDescription>
         </SheetHeader>
 
         <div className="flex min-h-0 flex-1 flex-col gap-6 px-4 pb-6">
@@ -100,8 +101,7 @@ function headline(dataset: Dataset, trend: TrendResponse, sexes: Sex[]) {
     return `${totals.join(" · ")} w latach ${first.year}–${last.year}`
   }
   const latest = sexes.map(
-    (sex) =>
-      `${labels[sex].many}: ${last[sex] ? formatNumber(last[sex]) : "brak danych"}`
+    (sex) => `${labels[sex].many}: ${formatCount(last[sex], "brak danych")}`
   )
   return `${latest.join(" · ")} w ${last.year} r.`
 }

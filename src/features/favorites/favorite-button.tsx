@@ -10,12 +10,15 @@ export function FavoriteButton({
   active: boolean
   onToggle: () => void
 }) {
+  let label = "Dodaj do ulubionych"
+  if (active) label = "Usuń z ulubionych"
+
   return (
     <button
       type="button"
       aria-pressed={active}
-      aria-label={active ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
-      title={active ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
+      aria-label={label}
+      title={label}
       className="inline-flex size-7 cursor-pointer items-center justify-center rounded-md align-middle text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
       onClick={(event) => {
         // In the table the whole row is clickable; the heart is its own thing.

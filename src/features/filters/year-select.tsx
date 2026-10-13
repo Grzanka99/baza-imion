@@ -23,9 +23,10 @@ export function YearSelect({
   return (
     <Select
       value={String(year)}
-      onValueChange={(value) =>
-        onChange(value === "all" ? "all" : Number(value))
-      }
+      onValueChange={(value) => {
+        if (value === "all") onChange("all")
+        else onChange(Number(value))
+      }}
     >
       <SelectTrigger aria-label="Rok" className="w-auto sm:w-40">
         <SelectValue />

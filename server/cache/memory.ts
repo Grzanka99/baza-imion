@@ -7,7 +7,8 @@ const entries = new Map<string, Entry>()
 /** The entry held for `key`, unless it has expired. */
 export function recall(key: string): Entry | undefined {
   const entry = entries.get(key)
-  return entry && entry.expiresAt > Date.now() ? entry : undefined
+  if (entry && entry.expiresAt > Date.now()) return entry
+  return undefined
 }
 
 export function remember(key: string, entry: Entry) {

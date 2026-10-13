@@ -6,7 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { formatNumber } from "@/lib/format"
+import { formatCount } from "@/lib/format"
 import { SEX_LABEL } from "@/lib/labels"
 import type { Dataset, Sex, TrendPoint } from "../../../shared/api"
 
@@ -41,7 +41,7 @@ export function TrendTable({
               <TableCell>{point.year}</TableCell>
               {sexes.map((sex) => (
                 <TableCell key={sex} className="text-right tabular-nums">
-                  {point[sex] ? formatNumber(point[sex]) : "–"}
+                  {formatCount(point[sex])}
                 </TableCell>
               ))}
             </TableRow>

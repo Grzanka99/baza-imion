@@ -33,7 +33,8 @@ export function integer(
   max: number
 ) {
   const raw = params.get(key)
-  const value = raw === null ? fallback : Number(raw)
+  let value = fallback
+  if (raw !== null) value = Number(raw)
   if (!Number.isInteger(value) || value < min || value > max) {
     throw new BadRequest(`${key} must be an integer from ${min} to ${max}`)
   }

@@ -43,7 +43,8 @@ export async function loadYear(
 ): Promise<Slice[]> {
   const files = YEARLY_LISTS[dataset][year]
   if (files) {
-    const sexes: Sex[] = sex === "all" ? ["M", "K"] : [sex]
+    let sexes: Sex[] = ["M", "K"]
+    if (sex !== "all") sexes = [sex]
     return Promise.all(sexes.map((each) => loadFile(files[each], each)))
   }
 

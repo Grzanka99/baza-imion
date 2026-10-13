@@ -59,9 +59,10 @@ function PageInput({ page, pageCount, disabled, onPage }: PaginationProps) {
 
   function commit() {
     const typed = Number(text)
-    const target = Number.isInteger(typed)
-      ? Math.min(Math.max(typed, 1), pageCount)
-      : page
+    let target = page
+    if (Number.isInteger(typed)) {
+      target = Math.min(Math.max(typed, 1), pageCount)
+    }
     setText(String(target))
     if (target !== page) onPage(target)
   }

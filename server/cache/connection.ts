@@ -2,12 +2,15 @@
 import { createClient, type InStatement } from "@libsql/client/web"
 
 // Without TURSO_URL the cache lives in memory only and is lost on restart.
-const client = process.env.TURSO_URL
-  ? createClient({
-      url: process.env.TURSO_URL,
-      authToken: process.env.TURSO_TOKEN,
-    })
-  : undefined
+function connect() {
+  if (!process.env.TURSO_URL) return undefined
+  return createClient({
+    url: process.env.TURSO_URL,
+    authToken: process.env.TURSO_TOKEN,
+  })
+}
+
+const client = connect()
 
 export const hasDatabase = client !== undefined
 
@@ -38,9 +41,9 @@ export async function run(statements: InStatement[]) {
 
 // Database errors can carry the connection URL, so only their kind is logged.
 export function logFailure(action: string, error: unknown) {
-  const kind =
-    error instanceof Error
-      ? ("code" in error && String(error.code)) || error.name
-      : "unknown error"
+  let kind = "unknown error"
+  if (error instanceof Error) {
+    kind = ("code" in error && String(error.code)) || error.name
+  }
   console.error(`cache ${action} failed: ${kind}`)
 }

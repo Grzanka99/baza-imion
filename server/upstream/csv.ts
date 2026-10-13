@@ -29,8 +29,10 @@ export function parseCsv(text: string): string[][] {
 
 /** A whole number in a CSV cell, or NaN. */
 export function toCount(cell: string | undefined) {
-  const value = cell?.trim() ? Number(cell) : NaN
-  return Number.isInteger(value) ? value : NaN
+  if (!cell?.trim()) return NaN
+  const value = Number(cell)
+  if (!Number.isInteger(value)) return NaN
+  return value
 }
 
 export const isBlank = (line: string[]) =>

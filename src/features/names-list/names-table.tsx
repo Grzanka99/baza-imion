@@ -1,9 +1,5 @@
 import { useEffect, useRef } from "react"
-import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
 
-import { FavoriteButton } from "@/features/favorites/favorite-button"
-import { SexIcons } from "@/components/sex-icon"
-import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Table,
@@ -13,7 +9,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { displayName, formatNumber, formatPercent } from "@/lib/format"
+import { NamesTableRow } from "@/features/names-list/names-table-row"
+import { SortButton } from "@/features/names-list/sort-button"
 import { cn } from "@/lib/utils"
 import type { Dataset, NameRow, SortKey, SortOrder } from "../../../shared/api"
 
@@ -58,21 +55,14 @@ export function NamesTable({
     if (window.scrollY > 0) onNewRows()
   }, [rows, onNewRows])
 
-  function sortButton(key: SortKey, label: string) {
-    const Icon =
-      sort !== key ? ArrowUpDown : order === "asc" ? ArrowUp : ArrowDown
-    return (
-      <Button
-        variant="ghost"
-        size="sm"
-        className="-mx-2"
-        onClick={() => onSort(key)}
-      >
-        {label}
-        <Icon className={cn(sort !== key && "text-muted-foreground")} />
-      </Button>
-    )
-  }
+  const sortButton = (key: SortKey, label: string) => (
+    <SortButton
+      label={label}
+      sorted={sort === key}
+      order={order}
+      onSort={() => onSort(key)}
+    />
+  )
 
   return (
     // From sm up only the rows scroll: the table container is the scroller, so
@@ -123,39 +113,14 @@ export function NamesTable({
             </TableRow>
           )}
           {rows?.map((row) => (
-            <TableRow
+            <NamesTableRow
               key={row.name}
-              className="cursor-pointer"
-              onClick={() => onSelect(row.name)}
-            >
-              <TableCell className="pl-4 text-right text-muted-foreground tabular-nums sm:pl-2">
-                {row.rank}
-              </TableCell>
-              <TableCell>
-                {/* Keyboard access to the row; its click bubbles up to the row. */}
-                <button
-                  type="button"
-                  className="cursor-pointer rounded-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  {displayName(row.name)}
-                </button>
-              </TableCell>
-              <TableCell className="text-right tabular-nums">
-                {formatNumber(row.count)}
-              </TableCell>
-              <TableCell className="text-center">
-                <SexIcons dataset={dataset} row={row} />
-              </TableCell>
-              <TableCell className="text-right text-muted-foreground tabular-nums">
-                {formatPercent(row.share)}
-              </TableCell>
-              <TableCell className="py-0 pr-3 pl-0 sm:pr-1">
-                <FavoriteButton
-                  active={isFavorite(row.name)}
-                  onToggle={() => onToggleFavorite(row.name)}
-                />
-              </TableCell>
-            </TableRow>
+              dataset={dataset}
+              row={row}
+              favorite={isFavorite(row.name)}
+              onSelect={() => onSelect(row.name)}
+              onToggleFavorite={() => onToggleFavorite(row.name)}
+            />
           ))}
         </TableBody>
       </Table>

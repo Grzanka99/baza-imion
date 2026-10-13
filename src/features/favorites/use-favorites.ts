@@ -25,9 +25,8 @@ function subscribe(onChange: () => void) {
 function parse(stored: string): string[] {
   try {
     const value: unknown = JSON.parse(stored)
-    return Array.isArray(value)
-      ? value.filter((name) => typeof name === "string")
-      : []
+    if (!Array.isArray(value)) return []
+    return value.filter((name) => typeof name === "string")
   } catch {
     return []
   }

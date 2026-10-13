@@ -71,6 +71,7 @@
     "use-isnan": "error",
     "valid-typeof": "error",
     "no-array-constructor": "error",
+    "no-ternary": "error",
     "no-unused-expressions": "error",
     "typescript/ban-ts-comment": "error",
     "typescript/no-duplicate-enum-values": "error",
@@ -103,5 +104,13 @@
     "react/purity": "error",
     "react/set-state-in-render": "error",
     "react/unsupported-syntax": "warn"
-  }
+  },
+  "overrides": [
+    {
+      "files": ["src/components/ui/**", "src/components/theme-provider.tsx"],
+      "rules": {
+        "no-ternary": "off"
+      }
+    }
+  ]
 }

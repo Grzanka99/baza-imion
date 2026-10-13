@@ -1,10 +1,11 @@
-import type {
-  Dataset,
-  NamesResponse,
-  SexFilter,
-  SortKey,
-  SortOrder,
-  YearFilter,
+import {
+  naturalOrder,
+  type Dataset,
+  type NamesResponse,
+  type SexFilter,
+  type SortKey,
+  type SortOrder,
+  type YearFilter,
 } from "../../shared/api.js"
 import { fold } from "./fold.js"
 import { pickRare } from "./random.js"
@@ -27,7 +28,14 @@ interface NamesQuery {
 
 export async function queryNames(query: NamesQuery): Promise<NamesResponse> {
   const scope = await loadScope(query.dataset, query.year, query.sex)
-  const matched = query.random ? pickRare(scope.rows) : match(scope.rows, query)
+  let matched: RankedRow[]
+  if (query.random) matched = pickRare(scope.rows)
+  else matched = match(scope.rows, query)
+
+  let matchedCount = scope.count
+  if (matched !== scope.rows) {
+    matchedCount = matched.reduce((sum, row) => sum + row.count, 0)
+  }
 
   const pageCount = Math.max(1, Math.ceil(matched.length / query.perPage))
   const page = Math.min(query.page, pageCount)
@@ -45,10 +53,7 @@ export async function queryNames(query: NamesQuery): Promise<NamesResponse> {
     page,
     perPage: query.perPage,
     matchedNames: matched.length,
-    matchedCount:
-      matched === scope.rows
-        ? scope.count
-        : matched.reduce((sum, row) => sum + row.count, 0),
+    matchedCount,
     scopeNames: scope.rows.length,
     scopeCount: scope.count,
     fetchedAt: scope.fetchedAt,
@@ -70,7 +75,7 @@ function match(rows: RankedRow[], query: NamesQuery): RankedRow[] {
   if (query.sort === "name") {
     matched = [...matched].sort((a, b) => a.nameOrder - b.nameOrder)
   }
-  if (query.order !== (query.sort === "name" ? "asc" : "desc")) {
+  if (query.order !== naturalOrder(query.sort)) {
     matched = [...matched].reverse()
   }
 

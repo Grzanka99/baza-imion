@@ -5,6 +5,8 @@ import {
   DATASET_YEARS,
   DEFAULT_DATASET,
   defaultYear,
+  naturalOrder,
+  oppositeOrder,
   type Dataset,
   type SexFilter,
   type SortKey,
@@ -13,7 +15,7 @@ import {
 } from "../../shared/api"
 
 /** Everything the user has chosen; it lives in the URL's query string. */
-interface View {
+export interface View {
   dataset: Dataset
   search: string
   sex: SexFilter
@@ -29,12 +31,9 @@ interface View {
 
 const CHANGE_EVENT = "viewchange"
 
-export function naturalOrder(sort: SortKey): SortOrder {
-  return sort === "name" ? "asc" : "desc"
-}
-
 function oneOf<T extends string>(value: string | null, allowed: readonly T[]) {
-  return allowed.includes(value as T) ? (value as T) : allowed[0]
+  if (allowed.includes(value as T)) return value as T
+  return allowed[0]
 }
 
 function parse(query: string): View {
@@ -51,7 +50,8 @@ function parse(query: string): View {
     year = Number(rawYear)
   }
 
-  const page = Number(params.get("page"))
+  let page = Number(params.get("page"))
+  if (!Number.isInteger(page) || page < 1) page = 1
   return {
     dataset,
     search: params.get("q") ?? "",
@@ -60,9 +60,9 @@ function parse(query: string): View {
     sort,
     order: oneOf<SortOrder>(params.get("order"), [
       natural,
-      natural === "asc" ? "desc" : "asc",
+      oppositeOrder(natural),
     ]),
-    page: Number.isInteger(page) && page > 0 ? page : 1,
+    page,
     name: params.get("name") || null,
     favorites: params.get("fav") === "1",
   }
@@ -100,11 +100,9 @@ export function useView() {
 
   const update = useCallback((changes: Partial<View>) => {
     const next = serialize({ ...parse(window.location.search), ...changes })
-    window.history.replaceState(
-      null,
-      "",
-      next ? `?${next}` : window.location.pathname
-    )
+    let url = window.location.pathname
+    if (next) url = `?${next}`
+    window.history.replaceState(null, "", url)
     window.dispatchEvent(new Event(CHANGE_EVENT))
   }, [])
 
