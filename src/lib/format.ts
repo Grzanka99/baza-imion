@@ -6,7 +6,6 @@ const percentFormat = new Intl.NumberFormat("pl-PL", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 })
-const dateFormat = new Intl.DateTimeFormat("pl-PL", { dateStyle: "long" })
 
 export const formatNumber = (value: number) => numberFormat.format(value)
 /** Shares too small to show as 0,01% say so, instead of reading as zero. */
@@ -15,7 +14,6 @@ export function formatPercent(value: number) {
     ? `<${percentFormat.format(0.0001)}`
     : percentFormat.format(value)
 }
-export const formatDate = (timestamp: number) => dateFormat.format(timestamp)
 
 /** Picks the Polish plural form: 1 imię, 2 imiona, 5 imion. */
 export function plural(count: number, one: string, few: string, many: string) {

@@ -30,6 +30,7 @@ interface NamesTableProps {
   order: SortOrder
   onSort: (key: SortKey) => void
   onSelect: (name: string) => void
+  onNewRows: () => void
 }
 
 export function NamesTable({
@@ -41,15 +42,18 @@ export function NamesTable({
   order,
   onSort,
   onSelect,
+  onNewRows,
 }: NamesTableProps) {
   const container = useRef<HTMLDivElement>(null)
 
-  // A new page or filter starts from the top of the list.
+  // A new page or filter starts from the top of the list. On phones it is the
+  // page that scrolls, not the table, and the caller knows how far.
   useEffect(() => {
     container.current
       ?.querySelector("[data-slot=table-container]")
       ?.scrollTo({ top: 0 })
-  }, [rows])
+    if (window.scrollY > 0) onNewRows()
+  }, [rows, onNewRows])
 
   function sortButton(key: SortKey, label: string) {
     const Icon =
@@ -68,15 +72,21 @@ export function NamesTable({
   }
 
   return (
-    // Only the rows scroll; the table container is the scroller so the header can stick.
+    // From sm up only the rows scroll: the table container is the scroller, so
+    // the header can stick to it. On phones the table runs edge to edge, the
+    // page scrolls, and the header sticks under the fixed bar instead; nothing
+    // on the way up may clip, or the header would stick to that instead.
     <div
       ref={container}
-      className="flex min-h-0 flex-col overflow-hidden rounded-lg border *:data-[slot=table-container]:min-h-0 *:data-[slot=table-container]:overflow-y-auto"
+      className="-mx-4 flex min-h-0 flex-col border-t max-sm:*:data-[slot=table-container]:overflow-visible sm:mx-0 sm:overflow-hidden sm:rounded-lg sm:border sm:*:data-[slot=table-container]:min-h-0 sm:*:data-[slot=table-container]:overflow-y-auto"
     >
       <Table>
-        <TableHeader className="sticky top-0 z-10 bg-background shadow-[0_1px_0_var(--border)]">
+        <TableHeader className="sticky top-(--bar-h) z-10 bg-background shadow-[0_1px_0_var(--border)] sm:top-0">
           <TableRow>
-            <TableHead className="w-16 text-right">Miejsce</TableHead>
+            <TableHead className="w-16 pl-4 text-right sm:pl-2">
+              <span className="sm:hidden">#</span>
+              <span className="hidden sm:inline">Miejsce</span>
+            </TableHead>
             <TableHead className="w-[46%]">
               {sortButton("name", "Imię")}
             </TableHead>
@@ -84,7 +94,7 @@ export function NamesTable({
               {sortButton("count", "Liczba")}
             </TableHead>
             <TableHead className="text-center">Płeć</TableHead>
-            <TableHead className="text-right">Udział</TableHead>
+            <TableHead className="pr-4 text-right sm:pr-2">Udział</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody className={cn(loading && rows && "opacity-50")}>
@@ -112,7 +122,7 @@ export function NamesTable({
               className="cursor-pointer"
               onClick={() => onSelect(row.name)}
             >
-              <TableCell className="text-right text-muted-foreground tabular-nums">
+              <TableCell className="pl-4 text-right text-muted-foreground tabular-nums sm:pl-2">
                 {row.rank}
               </TableCell>
               <TableCell>
@@ -133,7 +143,7 @@ export function NamesTable({
                   label={SEX_LABEL[dataset][row.sex].one}
                 />
               </TableCell>
-              <TableCell className="text-right text-muted-foreground tabular-nums">
+              <TableCell className="pr-4 text-right text-muted-foreground tabular-nums sm:pr-2">
                 {formatPercent(row.share)}
               </TableCell>
             </TableRow>
