@@ -1,69 +1,18 @@
 import type { Sex } from "../shared/api.js"
 
-// Names given to children in 2000-2019, one row per year, name and sex.
-const DATA_URL = "https://api.dane.gov.pl/1.4/resources/21458/data"
-const FIRST_YEAR = 2000
-const LAST_YEAR = 2019
-const PAGE_SIZE = 100
+// Everything comes from dane.gov.pl as whole CSV files: one request per file.
+// (Its paged row API would need hundreds of requests for the same data, and
+// cannot reach past row 10,000.)
+const fileUrl = (resourceId: number) =>
+  `https://api.dane.gov.pl/resources/${resourceId}/csv`
+
+/** Names given to children in 2000-2019: one file, one row per year, name and sex. */
+const HISTORY_RESOURCE = 21458
+const HISTORY_FIRST_YEAR = 2000
+const HISTORY_LAST_YEAR = 2019
+
 const MAX_CONCURRENT = 4
 const ATTEMPTS = 3
-
-export interface UpstreamRow {
-  year: number
-  name: string
-  count: number
-  sex: Sex
-}
-
-interface Cell<T> {
-  val: T
-}
-
-// Some pages come back with numeric cells as strings ("31" instead of 31.0).
-type NumberCell = Cell<number | string>
-
-interface RowAttributes {
-  col1: NumberCell
-  col2: Cell<string>
-  col3: NumberCell
-  col4: Cell<string>
-}
-
-interface DataPage {
-  meta: { count: number }
-  data: { attributes: RowAttributes }[]
-}
-
-function toInteger(cell: NumberCell | undefined) {
-  const raw = cell?.val
-  const value =
-    typeof raw === "number" || (typeof raw === "string" && raw.trim() !== "")
-      ? Number(raw)
-      : NaN
-  if (!Number.isInteger(value)) {
-    throw new Error(`dane.gov.pl: expected an integer, got ${raw}`)
-  }
-  return value
-}
-
-// Anything unexpected fails the whole fetch, so bad rows are never cached.
-function toRow(attributes: RowAttributes): UpstreamRow {
-  const year = toInteger(attributes?.col1)
-  const count = toInteger(attributes?.col3)
-  const name = attributes?.col2?.val
-  const sex = attributes?.col4?.val
-  if (
-    year < FIRST_YEAR ||
-    year > LAST_YEAR ||
-    count < 1 ||
-    typeof name !== "string" ||
-    name.trim() === "" ||
-    (sex !== "M" && sex !== "K")
-  ) {
-    throw new Error("dane.gov.pl: unexpected row")
-  }
-  return { year, name, count, sex }
-}
 
 let active = 0
 const waiting: (() => void)[] = []
@@ -83,7 +32,7 @@ async function withSlot<T>(task: () => Promise<T>): Promise<T> {
   }
 }
 
-async function withRetries<T>(task: () => Promise<T>): Promise<T> {
+async function fetchCsv(resourceId: number): Promise<string[][]> {
   let lastError: unknown
   for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
     if (attempt > 0) {
@@ -91,7 +40,16 @@ async function withRetries<T>(task: () => Promise<T>): Promise<T> {
     }
     try {
       // The slot is held until the body has arrived, not just the headers.
-      return await withSlot(task)
+      const text = await withSlot(async () => {
+        const response = await fetch(fileUrl(resourceId), {
+          signal: AbortSignal.timeout(60_000),
+        })
+        if (!response.ok) {
+          throw new Error(`dane.gov.pl: HTTP ${response.status}`)
+        }
+        return response.text()
+      })
+      return parseCsv(text.replace(/^\uFEFF/, ""))
     } catch (error) {
       lastError = error
     }
@@ -99,48 +57,55 @@ async function withRetries<T>(task: () => Promise<T>): Promise<T> {
   throw lastError
 }
 
-function fetchPage(q: string, page: number): Promise<DataPage> {
-  const url = new URL(DATA_URL)
-  url.searchParams.set("q", q)
-  // A total order, so pages never overlap or skip rows.
-  url.searchParams.set("sort", "col1,col2,col4")
-  url.searchParams.set("per_page", String(PAGE_SIZE))
-  url.searchParams.set("page", String(page))
-
-  return withRetries(async () => {
-    const response = await fetch(url, { signal: AbortSignal.timeout(20_000) })
-    if (!response.ok) throw new Error(`dane.gov.pl: HTTP ${response.status}`)
-    const body = (await response.json()) as DataPage
-    if (
-      !Number.isInteger(body?.meta?.count) ||
-      body.meta.count < 0 ||
-      !Array.isArray(body.data)
-    ) {
-      throw new Error("dane.gov.pl: unexpected response")
-    }
-    return body
-  })
+/** A whole number in a CSV cell, or NaN. */
+function toCount(cell: string | undefined) {
+  const value = cell?.trim() ? Number(cell) : NaN
+  return Number.isInteger(value) ? value : NaN
 }
 
-/** Fetches every row matching an Elasticsearch query string, across all pages. */
-export async function fetchRows(q: string): Promise<UpstreamRow[]> {
-  const first = await fetchPage(q, 1)
-  const pageCount = Math.ceil(first.meta.count / PAGE_SIZE)
-  const rest = await Promise.all(
-    Array.from({ length: Math.max(pageCount - 1, 0) }, (_, i) =>
-      fetchPage(q, i + 2)
-    )
-  )
+const isBlank = (line: string[]) => line.length === 1 && line[0].trim() === ""
 
-  const rows = [first, ...rest].flatMap((page) =>
-    page.data.map((row) => toRow(row?.attributes))
-  )
-  if (rows.length !== first.meta.count) {
-    throw new Error(
-      `dane.gov.pl: expected ${first.meta.count} rows, got ${rows.length}`
-    )
+export type YearEntry = [name: string, sex: Sex, count: number]
+
+/**
+ * Fetches the 2000-2019 children's names in one request and splits them by
+ * year. Anything unexpected fails the whole fetch, so bad rows are never
+ * cached.
+ */
+export async function fetchChildrenHistory(): Promise<
+  Map<number, YearEntry[]>
+> {
+  const [header, ...lines] = await fetchCsv(HISTORY_RESOURCE)
+  if (header?.length !== 4) {
+    throw new Error("dane.gov.pl: unexpected columns in the 2000-2019 file")
   }
-  return rows
+
+  const years = new Map<number, YearEntry[]>()
+  for (const line of lines) {
+    if (isBlank(line)) continue
+    const year = toCount(line[0])
+    const name = line[1]?.trim().toUpperCase()
+    const count = toCount(line[2])
+    const sex = line[3]?.trim()
+    if (
+      line.length !== 4 ||
+      !(year >= HISTORY_FIRST_YEAR && year <= HISTORY_LAST_YEAR) ||
+      !name ||
+      !(count >= 1) ||
+      (sex !== "M" && sex !== "K")
+    ) {
+      throw new Error("dane.gov.pl: unexpected row in the 2000-2019 file")
+    }
+    const entries = years.get(year) ?? []
+    entries.push([name, sex, count])
+    years.set(year, entries)
+  }
+  for (let year = HISTORY_FIRST_YEAR; year <= HISTORY_LAST_YEAR; year++) {
+    if (!years.has(year)) {
+      throw new Error(`dane.gov.pl: no rows for ${year} in the 2000-2019 file`)
+    }
+  }
+  return years
 }
 
 function parseCsv(text: string): string[][] {
@@ -173,24 +138,14 @@ function parseCsv(text: string): string[][] {
 }
 
 /**
- * Fetches a whole one-sex list of names and counts as CSV. These lists run to
- * tens of thousands of rows, past what the paged API can reach (row 10,000).
- * Columns are name, optionally sex, then count; header wording varies by year.
+ * Fetches a whole one-sex list of names and counts. Columns are name,
+ * optionally sex, then count; header wording varies by year.
  */
 export async function fetchNameCounts(
   resourceId: number,
   sex: Sex
 ): Promise<[name: string, count: number][]> {
-  const text = await withRetries(async () => {
-    const response = await fetch(
-      `https://api.dane.gov.pl/resources/${resourceId}/csv`,
-      { signal: AbortSignal.timeout(60_000) }
-    )
-    if (!response.ok) throw new Error(`dane.gov.pl: HTTP ${response.status}`)
-    return response.text()
-  })
-
-  const [header, ...lines] = parseCsv(text.replace(/^\uFEFF/, ""))
+  const [header, ...lines] = await fetchCsv(resourceId)
   const width = header?.length
   if (width !== 2 && width !== 3) {
     throw new Error(`dane.gov.pl: unexpected columns in resource ${resourceId}`)
@@ -198,14 +153,12 @@ export async function fetchNameCounts(
 
   const counts = new Map<string, number>()
   for (const line of lines) {
-    if (line.length === 1 && line[0].trim() === "") continue
+    if (isBlank(line)) continue
     const name = line[0].trim().toUpperCase()
-    const count = Number(line[width - 1])
+    const count = toCount(line[width - 1])
     if (
       line.length !== width ||
-      line[width - 1].trim() === "" ||
-      !Number.isInteger(count) ||
-      count < 1 ||
+      !(count >= 1) ||
       (width === 3 && !line[1].trim().toUpperCase().startsWith(sex))
     ) {
       throw new Error(`dane.gov.pl: unexpected row in resource ${resourceId}`)

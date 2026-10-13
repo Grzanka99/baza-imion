@@ -61,10 +61,24 @@ function yearFilter(params: URLSearchParams, selected: Dataset): YearFilter {
   return integer(params, "year", years[0], years[0], years[years.length - 1])
 }
 
+// The data changes once a year. Vercel's CDN may answer a repeated request
+// itself for a week, and for ten days hand out its copy while fetching a new
+// one, so most requests never reach this code; a browser reuses an answer for
+// an hour (the app keeps its own copy for longer, see src/lib/answer-cache.ts).
+// A random pick must differ every time.
+const CACHEABLE =
+  "public, max-age=3600, s-maxage=604800, stale-while-revalidate=864000"
+
 function api<T>(handler: (params: URLSearchParams) => Promise<T>) {
   return async (request: Request) => {
     try {
-      return Response.json(await handler(new URL(request.url).searchParams))
+      const params = new URL(request.url).searchParams
+      return Response.json(await handler(params), {
+        headers: {
+          "Cache-Control":
+            params.get("random") === "1" ? "no-store" : CACHEABLE,
+        },
+      })
     } catch (error) {
       if (error instanceof BadRequest || error instanceof NotFound) {
         return Response.json({ error: error.message } satisfies ApiError, {

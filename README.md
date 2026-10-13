@@ -53,9 +53,17 @@ z dane.gov.pl od zera.
 - `src/` – interfejs (React, shadcn/ui na Radix).
 - `api/` – punkty wejścia funkcji Vercel; korzystają z kodu w `server/`.
 - `server/` – pośrednik między interfejsem a dane.gov.pl. Pobiera dane
-  rocznikami, liczy miejsca w rankingu, udziały i sumy, a odpowiedzi API
-  trzyma przez 10 dni w bazie [Turso](https://turso.tech).
+  całymi plikami CSV, liczy miejsca w rankingu, udziały i sumy.
 - `shared/` – typy wspólne dla obu części.
+
+Żeby ograniczyć liczbę zapytań, odpowiedzi są zapamiętywane na każdym etapie:
+
+| Gdzie | Na jak długo | Co oszczędza |
+|---|---|---|
+| przeglądarka (`localStorage`) | 7 dni, do następnej wersji aplikacji | zapytania do serwera |
+| CDN Vercel | 7 dni, do następnego wdrożenia | uruchomienia funkcji |
+| pamięć procesu serwera | do restartu | zapytania do bazy |
+| baza Turso | 10 dni | zapytania do dane.gov.pl |
 
 | Endpoint | Parametry |
 |---|---|

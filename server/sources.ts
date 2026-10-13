@@ -1,6 +1,10 @@
 import type { Dataset, Sex, SexFilter } from "../shared/api.js"
-import { cached } from "./cache.js"
-import { fetchNameCounts, fetchRows } from "./upstream.js"
+import { cached, prime } from "./cache.js"
+import {
+  fetchChildrenHistory,
+  fetchNameCounts,
+  type YearEntry,
+} from "./upstream.js"
 
 /** One cached upstream answer: a year of names for one sex or both. */
 export interface Slice {
@@ -8,10 +12,8 @@ export interface Slice {
   forEach(visit: (name: string, sex: Sex, count: number) => void): void
 }
 
-type YearEntry = [name: string, sex: Sex, count: number]
-
 // dane.gov.pl resource ids of the yearly first-name lists, one per sex.
-// Children before 2020 come from a single resource queried by year instead.
+// Children before 2020 come from a single file covering 2000-2019 instead.
 const FILES: Record<Dataset, Record<number, Record<Sex, number>>> = {
   children: {
     2020: { M: 28020, K: 28021 },
@@ -31,6 +33,16 @@ const FILES: Record<Dataset, Record<number, Record<Sex, number>>> = {
     2025: { M: 63929, K: 63924 },
     2026: { M: 1159669, K: 1159670 },
   },
+}
+
+const historyKey = (year: number) => `year:${year}`
+
+// Shared by the years being loaded at the same moment.
+let history: ReturnType<typeof fetchChildrenHistory> | undefined
+
+function fetchHistory() {
+  history ??= fetchChildrenHistory().finally(() => (history = undefined))
+  return history
 }
 
 async function loadFile(resourceId: number, sex: Sex): Promise<Slice> {
@@ -58,10 +70,16 @@ export async function loadYear(
   }
 
   const { value, fetchedAt } = await cached<YearEntry[]>(
-    `year:${year}`,
+    historyKey(year),
     async () => {
-      const rows = await fetchRows(`col1:${year}`)
-      return rows.map((row) => [row.name, row.sex, row.count])
+      // One file holds all twenty years, so the others are stored with it.
+      const years = await fetchHistory()
+      await Promise.all(
+        [...years]
+          .filter(([other]) => other !== year)
+          .map(([other, entries]) => prime(historyKey(other), entries))
+      )
+      return years.get(year)!
     }
   )
   return [

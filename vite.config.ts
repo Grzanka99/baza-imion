@@ -6,6 +6,11 @@ import { defineConfig } from "vite"
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  define: {
+    // Changes with every build; the app uses it to drop answers it cached
+    // under an earlier version.
+    __BUILD_ID__: JSON.stringify(Date.now().toString(36)),
+  },
   resolve: {
     alias: {
       "@": resolve(import.meta.dirname, "./src"),
