@@ -40,3 +40,4 @@ cache.sqlite*
 *.njsproj
 *.sln
 *.sw?
+.env*
