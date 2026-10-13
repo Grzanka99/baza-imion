@@ -1,5 +1,7 @@
 // The HTTP-only client: no native module, so it also runs on Vercel.
-import { createClient, type InStatement } from "@libsql/client/web"
+import { createClient } from "@libsql/client/web"
+
+export type Statement = string | { sql: string; args: (string | number)[] }
 
 // Without TURSO_URL the cache lives in memory only and is lost on restart.
 function connect() {
@@ -25,7 +27,7 @@ const CREATE_TABLE = `CREATE TABLE IF NOT EXISTS cache (
  * Runs statements as one round trip. The table is only created when the
  * database turns out not to have it, so a normal start costs no extra call.
  */
-export async function run(statements: InStatement[]) {
+export async function run(statements: Statement[]) {
   if (!client) return []
   try {
     return await client.batch(statements)

@@ -1,6 +1,4 @@
-import type { InStatement } from "@libsql/client/web"
-
-import { hasDatabase, logFailure, run } from "./connection.js"
+import { hasDatabase, logFailure, run, type Statement } from "./connection.js"
 import type { Entry } from "./entry.js"
 
 /** Most keys asked for in one query, to keep each answer a sensible size. */
@@ -19,7 +17,7 @@ async function flushReads() {
   const found = new Map<string, Entry>()
   try {
     const now = Date.now()
-    const queries: InStatement[] = []
+    const queries: Statement[] = []
     for (let start = 0; start < keys.length; start += READ_CHUNK) {
       const chunk = keys.slice(start, start + READ_CHUNK)
       queries.push({
