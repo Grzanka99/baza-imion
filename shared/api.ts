@@ -32,7 +32,11 @@ export interface NameRow {
   /** Position by count within the selected year(s) and sex; ties share a rank. */
   rank: number
   name: string
-  sex: Sex
+  /**
+   * Who bears the name, the larger group first. With both sexes selected a
+   * name shared by men and women is one row, and `count` is their sum.
+   */
+  sexes: { sex: Sex; count: number }[]
   count: number
   /** Fraction of all people in the selected year(s) and sex. */
   share: number

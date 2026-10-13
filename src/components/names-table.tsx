@@ -21,6 +21,10 @@ import {
 import { cn } from "@/lib/utils"
 import type { Dataset, NameRow, SortKey, SortOrder } from "../../shared/api"
 
+// Below this share of a name's bearers, a sex is drawn faintly: three women
+// named Piotr should not read as "a name for both".
+const MINOR_SHARE = 0.01
+
 interface NamesTableProps {
   dataset: Dataset
   rows: NameRow[] | undefined
@@ -118,7 +122,7 @@ export function NamesTable({
           )}
           {rows?.map((row) => (
             <TableRow
-              key={`${row.sex}:${row.name}`}
+              key={row.name}
               className="cursor-pointer"
               onClick={() => onSelect(row.name)}
             >
@@ -138,10 +142,16 @@ export function NamesTable({
                 {formatNumber(row.count)}
               </TableCell>
               <TableCell className="text-center">
-                <SexIcon
-                  sex={row.sex}
-                  label={SEX_LABEL[dataset][row.sex].one}
-                />
+                <span className="inline-flex items-center gap-0.5">
+                  {row.sexes.map(({ sex, count }) => (
+                    <SexIcon
+                      key={sex}
+                      sex={sex}
+                      label={`${SEX_LABEL[dataset][sex].one}: ${formatNumber(count)}`}
+                      faint={count < row.count * MINOR_SHARE}
+                    />
+                  ))}
+                </span>
               </TableCell>
               <TableCell className="pr-4 text-right text-muted-foreground tabular-nums sm:pr-2">
                 {formatPercent(row.share)}

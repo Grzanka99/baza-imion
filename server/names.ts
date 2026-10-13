@@ -3,6 +3,7 @@ import {
   type Dataset,
   type NameRow,
   type NamesResponse,
+  type Sex,
   type SexFilter,
   type SortKey,
   type SortOrder,
@@ -59,32 +60,40 @@ async function loadScope(
     return known
   }
 
-  const byName = new Map<string, RankedRow>()
+  // One row per name: with both sexes selected, men and women who share a
+  // name are counted together.
+  const byName = new Map<string, RankedRow & { bySex: Record<Sex, number> }>()
   for (const slice of slices) {
     slice.forEach((name, rowSex, count) => {
       if (sex !== "all" && rowSex !== sex) return
-      const id = `${rowSex}:${name}`
-      const row = byName.get(id)
-      if (row) row.count += count
-      else {
-        byName.set(id, {
+      let row = byName.get(name)
+      if (!row) {
+        row = {
           name,
-          sex: rowSex,
-          count,
+          sexes: [],
+          bySex: { M: 0, K: 0 },
+          count: 0,
           rank: 0,
           share: 0,
           folded: fold(name),
           nameOrder: 0,
-        })
+        }
+        byName.set(name, row)
       }
+      row.count += count
+      row.bySex[rowSex] += count
     })
   }
 
-  const rows = [...byName.values()]
+  const rows: RankedRow[] = [...byName.values()].map(({ bySex, ...row }) => ({
+    ...row,
+    sexes: (["M", "K"] as const)
+      .filter((each) => bySex[each] > 0)
+      .map((each) => ({ sex: each, count: bySex[each] }))
+      .sort((a, b) => b.count - a.count),
+  }))
   rows
-    .sort(
-      (a, b) => collator.compare(a.name, b.name) || a.sex.localeCompare(b.sex)
-    )
+    .sort((a, b) => collator.compare(a.name, b.name))
     .forEach((row, index) => (row.nameOrder = index))
   rows.sort((a, b) => b.count - a.count || a.nameOrder - b.nameOrder)
 
@@ -156,16 +165,24 @@ export async function queryNames(query: NamesQuery): Promise<NamesResponse> {
     matched = [...matched].reverse()
   }
 
+  // A name that is exactly what was typed leads the list, whatever the order.
+  if (needle) {
+    const exact = matched.filter((row) => row.folded === needle)
+    if (exact.length > 0 && exact.length < matched.length) {
+      matched = [...exact, ...matched.filter((row) => row.folded !== needle)]
+    }
+  }
+
   const pageCount = Math.max(1, Math.ceil(matched.length / query.perPage))
   const page = Math.min(query.page, pageCount)
   const start = (page - 1) * query.perPage
   return {
     rows: matched
       .slice(start, start + query.perPage)
-      .map(({ rank, name, sex, count, share }) => ({
+      .map(({ rank, name, sexes, count, share }) => ({
         rank,
         name,
-        sex,
+        sexes,
         count,
         share,
       })),
