@@ -1,10 +1,11 @@
-import { createReadStream, existsSync, statSync } from "node:fs"
+import { open, stat } from "node:fs/promises"
 import {
   createServer,
   type IncomingMessage,
   type ServerResponse,
 } from "node:http"
 import { extname, join, normalize } from "node:path"
+import { pipeline } from "node:stream"
 
 import type { ApiError } from "../shared/api.js"
 import { handleNames, handleTrend } from "./http/handlers.js"
@@ -33,33 +34,43 @@ async function sendApi(url: URL, method: string, res: ServerResponse) {
     status: 404,
   })
   const handler = ROUTES[url.pathname]
-  if (handler && method === "GET") response = await handler(new Request(url))
+  if (handler && (method === "GET" || method === "HEAD")) {
+    response = await handler(new Request(url))
+  }
   res.statusCode = response.status
   response.headers.forEach((value, key) => res.setHeader(key, value))
   res.end(Buffer.from(await response.arrayBuffer()))
 }
 
-const isFile = (path: string) => existsSync(path) && statSync(path).isFile()
+/** The file at `path`, opened for reading, when there is one. */
+async function openFile(path: string) {
+  const info = await stat(path).catch(() => undefined)
+  if (!info?.isFile()) return undefined
+  return { path, size: info.size, handle: await open(path) }
+}
 
 // Serves the built frontend; in development Vite does this instead.
-function sendFile(pathname: string, res: ServerResponse) {
-  let file: string
+async function sendFile(pathname: string, res: ServerResponse) {
+  let path: string
   try {
-    file = join(DIST, normalize(decodeURIComponent(pathname)))
+    path = join(DIST, normalize(decodeURIComponent(pathname)))
   } catch {
     res.writeHead(400).end("Bad request")
     return
   }
-  if (!isFile(file)) file = join(DIST, "index.html")
-  if (!isFile(file)) {
+  const file =
+    (await openFile(path)) ?? (await openFile(join(DIST, "index.html")))
+  if (!file) {
     res.writeHead(404).end("Run `vp build` first.")
     return
   }
   res.setHeader(
     "Content-Type",
-    CONTENT_TYPE[extname(file)] ?? "application/octet-stream"
+    CONTENT_TYPE[extname(file.path)] ?? "application/octet-stream"
   )
-  createReadStream(file).pipe(res)
+  res.setHeader("Content-Length", file.size)
+  // Closes the file when the visitor leaves early or the read fails.
+  pipeline(file.handle.createReadStream(), res, () => {})
 }
 
 async function handle(req: IncomingMessage, res: ServerResponse) {
@@ -68,7 +79,7 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
     if (url.pathname.startsWith("/api/")) {
       await sendApi(url, req.method ?? "GET", res)
     } else {
-      sendFile(url.pathname, res)
+      await sendFile(url.pathname, res)
     }
   } catch (error) {
     console.error(error)
