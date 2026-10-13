@@ -23,7 +23,7 @@ import { defaultYear, type NamesResponse, type SortKey } from "../shared/api"
 
 const PER_PAGE = 25
 
-export function App() {
+export default function App() {
   const [view, update] = useView()
   const { dataset, search, sex, year, sort, order, page } = view
   // Remounts the search box, which owns the typed text.
@@ -216,5 +216,3 @@ export function App() {
     </div>
   )
 }
-
-export default App

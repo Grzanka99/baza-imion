@@ -6,8 +6,8 @@ import type { Entry } from "./entry.js"
 /** Most keys asked for in one query, to keep each answer a sensible size. */
 const READ_CHUNK = 16
 
-// Reads and writes asked for in the same tick travel together: loading
-// twenty-odd years is one query, not one per year.
+// Reads and writes asked for in the same tick travel together: loading every
+// year of a dataset is a few queries, not one per year.
 type Waiter = (entry: Entry | undefined) => void
 let pendingReads: Map<string, Waiter[]> | undefined
 let pendingWrites: Map<string, Entry> | undefined

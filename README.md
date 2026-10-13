@@ -4,7 +4,8 @@ Wyszukiwarka i ranking imion w Polsce na podstawie danych z rejestru PESEL
 udostępnianych przez dane.gov.pl:
 
 - **Cała populacja** – imiona wszystkich żyjących osób, stan na styczeń
-  każdego roku od 2019 ([zbiór 1667](https://dane.gov.pl/pl/dataset/1667)).
+  każdego roku od 2020 i na lipiec 2019
+  ([zbiór 1667](https://dane.gov.pl/pl/dataset/1667)).
 - **Noworodki** – imiona nadane dzieciom w latach 2000–2025
   ([zbiór 219](https://dane.gov.pl/pl/dataset/219)).
 
@@ -40,7 +41,7 @@ Repozytorium jest gotowe do importu w Vercel (`vercel.json`): interfejs jest
 budowany jako statyczna strona, a `api/names.ts` i `api/trend.ts` działają
 jako funkcje Node.js.
 
-1. Zaimportuj repozytorium w Vercel (framework: Vite, wykryje się sam).
+1. Zaimportuj repozytorium w Vercel.
 2. W ustawieniach projektu dodaj zmienne środowiskowe `TURSO_URL`
    i `TURSO_TOKEN` (Production i Preview).
 3. Wdróż.
@@ -83,7 +84,7 @@ src/
 |---|---|---|
 | przeglądarka (`localStorage`) | 7 dni, do następnej wersji aplikacji | zapytania do serwera |
 | CDN Vercel | 7 dni, do następnego wdrożenia | uruchomienia funkcji |
-| pamięć procesu serwera | do restartu | zapytania do bazy |
+| pamięć procesu serwera | 10 dni albo do restartu | zapytania do bazy |
 | baza Turso | 10 dni | zapytania do dane.gov.pl |
 
 | Endpoint | Parametry |

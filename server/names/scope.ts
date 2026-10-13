@@ -18,7 +18,7 @@ export interface RankedRow extends NameRow {
 }
 
 /** Every name in one dataset, year selection and sex, ranked by count. */
-export interface Scope {
+interface Scope {
   signature: string
   rows: RankedRow[]
   count: number
@@ -100,7 +100,7 @@ function rank(slices: Slice[], sex: SexFilter) {
   rows.forEach((row, index) => {
     const previous = rows[index - 1]
     row.rank = previous?.count === row.count ? previous.rank : index + 1
-    row.share = count ? row.count / count : 0
+    row.share = row.count / count
   })
 
   return { rows, count }

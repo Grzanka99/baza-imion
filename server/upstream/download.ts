@@ -1,8 +1,6 @@
 import { parseCsv } from "./csv.js"
 
 // Everything comes from dane.gov.pl as whole CSV files: one request per file.
-// (Its paged row API would need hundreds of requests for the same data, and
-// cannot reach past row 10,000.)
 const fileUrl = (resourceId: number) =>
   `https://api.dane.gov.pl/resources/${resourceId}/csv`
 

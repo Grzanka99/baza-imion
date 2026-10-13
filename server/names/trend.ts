@@ -6,8 +6,8 @@ import {
 import { loadYear } from "./years.js"
 
 /**
- * Built from the cached years, so asking about a name never adds upstream
- * calls or cache entries of its own. Unknown names give `undefined`.
+ * One name's counts in every year of the dataset, read from the same cached
+ * years as the list. Unknown names give `undefined`.
  */
 export async function queryTrend(
   dataset: Dataset,

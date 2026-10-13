@@ -12,7 +12,7 @@ export function Collapse({
   children,
 }: {
   open: boolean
-  className?: string
+  className: string
   children: ReactNode
 }) {
   return (

@@ -10,7 +10,7 @@ import { fold } from "./fold.js"
 import { pickRare } from "./random.js"
 import { loadScope, type RankedRow } from "./scope.js"
 
-export interface NamesQuery {
+interface NamesQuery {
   dataset: Dataset
   year: YearFilter
   sex: SexFilter
@@ -20,9 +20,9 @@ export interface NamesQuery {
   page: number
   perPage: number
   /** Answer with one random uncommon name instead of a page of the list. */
-  random?: boolean
+  random: boolean
   /** List only these names (the visitor's favourites). */
-  only?: string[]
+  only: string[] | undefined
 }
 
 export async function queryNames(query: NamesQuery): Promise<NamesResponse> {

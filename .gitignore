@@ -1,22 +1,15 @@
 # Logs
 logs
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
 
 node_modules
 dist
-dist-ssr
 *.local
 
-# Backups, temporary files, test coverage
+# Backups and temporary files
 *~
 *.bak
 *.tmp
-coverage
 Thumbs.db
 Desktop.ini
 
@@ -26,9 +19,6 @@ Desktop.ini
 # Secrets
 .env
 .env.*
-
-# Local database files
-cache.sqlite*
 
 # Editor directories and files
 .vscode/*
@@ -40,4 +30,3 @@ cache.sqlite*
 *.njsproj
 *.sln
 *.sw?
-.env*

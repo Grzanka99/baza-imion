@@ -3,7 +3,7 @@ import { join, normalize } from "node:path"
 import type { ApiError } from "../shared/api.js"
 import { handleNames, handleTrend } from "./http/handlers.js"
 
-// The standalone server for local use: `bun run dev` and `bun run start`.
+// The standalone server: `bun run dev` and `bun run start`.
 // On Vercel the frontend is static and api/*.ts serve the same handlers.
 
 const DIST = join(import.meta.dir, "..", "dist")
@@ -13,8 +13,8 @@ const server = Bun.serve({
   port: Number(process.env.PORT ?? 8787),
   // Bun's error page shows source code and file paths.
   development: false,
-  // A cold cache needs a few hundred upstream calls before the first answer;
-  // 255 seconds is the most Bun allows.
+  // A cold cache downloads every yearly file of a dataset before the first
+  // answer; 255 seconds is the most Bun allows.
   idleTimeout: 255,
   routes: {
     "/api/names": { GET: handleNames },

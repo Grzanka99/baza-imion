@@ -13,7 +13,7 @@ import {
 } from "../../shared/api"
 
 /** Everything the user has chosen; it lives in the URL's query string. */
-export interface View {
+interface View {
   dataset: Dataset
   search: string
   sex: SexFilter
