@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react"
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
 
+import { FavoriteButton } from "@/components/favorite-button"
 import { SexIcon } from "@/components/sex-icon"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -35,6 +36,10 @@ interface NamesTableProps {
   onSort: (key: SortKey) => void
   onSelect: (name: string) => void
   onNewRows: () => void
+  isFavorite: (name: string) => boolean
+  onToggleFavorite: (name: string) => void
+  /** What to say when there are no rows. */
+  emptyText: string
 }
 
 export function NamesTable({
@@ -47,6 +52,9 @@ export function NamesTable({
   onSort,
   onSelect,
   onNewRows,
+  isFavorite,
+  onToggleFavorite,
+  emptyText,
 }: NamesTableProps) {
   const container = useRef<HTMLDivElement>(null)
 
@@ -91,21 +99,24 @@ export function NamesTable({
               <span className="sm:hidden">#</span>
               <span className="hidden sm:inline">Miejsce</span>
             </TableHead>
-            <TableHead className="w-[46%]">
+            <TableHead className="w-[38%] sm:w-[42%]">
               {sortButton("name", "Imię")}
             </TableHead>
             <TableHead className="text-right">
               {sortButton("count", "Liczba")}
             </TableHead>
             <TableHead className="text-center">Płeć</TableHead>
-            <TableHead className="pr-4 text-right sm:pr-2">Udział</TableHead>
+            <TableHead className="text-right">Udział</TableHead>
+            <TableHead className="w-9 pr-3 pl-0 sm:pr-1">
+              <span className="sr-only">Ulubione</span>
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody className={cn(loading && rows && "opacity-50")}>
           {!rows &&
             Array.from({ length: perPage }, (_, index) => (
               <TableRow key={index}>
-                <TableCell colSpan={5}>
+                <TableCell colSpan={6}>
                   <Skeleton className="h-5 w-full" />
                 </TableCell>
               </TableRow>
@@ -113,10 +124,10 @@ export function NamesTable({
           {rows?.length === 0 && (
             <TableRow>
               <TableCell
-                colSpan={5}
-                className="h-24 text-center text-muted-foreground"
+                colSpan={6}
+                className="h-24 px-4 text-center whitespace-normal text-muted-foreground"
               >
-                Brak imion pasujących do wyszukiwania.
+                {emptyText}
               </TableCell>
             </TableRow>
           )}
@@ -153,8 +164,14 @@ export function NamesTable({
                   ))}
                 </span>
               </TableCell>
-              <TableCell className="pr-4 text-right text-muted-foreground tabular-nums sm:pr-2">
+              <TableCell className="text-right text-muted-foreground tabular-nums">
                 {formatPercent(row.share)}
+              </TableCell>
+              <TableCell className="py-0 pr-3 pl-0 sm:pr-1">
+                <FavoriteButton
+                  active={isFavorite(row.name)}
+                  onToggle={() => onToggleFavorite(row.name)}
+                />
               </TableCell>
             </TableRow>
           ))}

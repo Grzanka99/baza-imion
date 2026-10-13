@@ -59,7 +59,7 @@ z dane.gov.pl od zera.
 
 | Endpoint | Parametry |
 |---|---|
-| `GET /api/names` | `dataset` (`population`, `children`), `year` (rok lub `all` dla noworodków), `sex` (`all`, `M`, `K`), `q`, `sort` (`count`, `name`), `order` (`desc`, `asc`), `page`, `perPage`, `random=1` (jedno losowe, rzadkie imię) |
+| `GET /api/names` | `dataset` (`population`, `children`), `year` (rok lub `all` dla noworodków), `sex` (`all`, `M`, `K`), `q`, `sort` (`count`, `name`), `order` (`desc`, `asc`), `page`, `perPage`, `random=1` (jedno losowe, rzadkie imię), `names` (tylko podane imiona, po przecinku) |
 | `GET /api/trend` | `dataset`, `name` |
 
 Nowy rocznik danych wymaga dopisania identyfikatorów plików w

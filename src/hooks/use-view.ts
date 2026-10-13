@@ -23,6 +23,8 @@ export interface View {
   page: number
   /** The name whose trend sheet is open. */
   name: string | null
+  /** Show only the favourite names. */
+  favorites: boolean
 }
 
 const CHANGE_EVENT = "viewchange"
@@ -62,6 +64,7 @@ function parse(query: string): View {
     ]),
     page: Number.isInteger(page) && page > 0 ? page : 1,
     name: params.get("name") || null,
+    favorites: params.get("fav") === "1",
   }
 }
 
@@ -78,6 +81,7 @@ function serialize(view: View) {
   if (view.order !== naturalOrder(view.sort)) params.set("order", view.order)
   if (view.page > 1) params.set("page", String(view.page))
   if (view.name) params.set("name", view.name)
+  if (view.favorites) params.set("fav", "1")
   return params.toString()
 }
 

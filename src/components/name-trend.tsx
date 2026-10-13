@@ -1,5 +1,6 @@
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts"
 
+import { FavoriteButton } from "@/components/favorite-button"
 import {
   ChartContainer,
   ChartLegend,
@@ -25,7 +26,13 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { useApi } from "@/hooks/use-api"
-import { SEX_COLOR, SEX_LABEL, displayName, formatNumber } from "@/lib/format"
+import {
+  SEX_COLOR,
+  SEX_LABEL,
+  displayName,
+  formatCompact,
+  formatNumber,
+} from "@/lib/format"
 import type { Dataset, Sex, TrendResponse } from "../../shared/api"
 
 const SEXES: Sex[] = ["M", "K"]
@@ -41,9 +48,17 @@ interface NameTrendProps {
   dataset: Dataset
   name: string | null
   onClose: () => void
+  favorite: boolean
+  onToggleFavorite: () => void
 }
 
-export function NameTrend({ dataset, name, onClose }: NameTrendProps) {
+export function NameTrend({
+  dataset,
+  name,
+  onClose,
+  favorite,
+  onToggleFavorite,
+}: NameTrendProps) {
   const { data, error, loading } = useApi<TrendResponse>(
     name && `/api/trend?dataset=${dataset}&name=${encodeURIComponent(name)}`
   )
@@ -65,8 +80,11 @@ export function NameTrend({ dataset, name, onClose }: NameTrendProps) {
     <Sheet open={name !== null} onOpenChange={(open) => !open && onClose()}>
       <SheetContent className="data-[side=right]:sm:max-w-lg">
         <SheetHeader>
-          <SheetTitle className="text-xl">
+          <SheetTitle className="flex items-center gap-1 pr-8 text-xl">
             {displayName(name ?? trend?.name ?? "")}
+            {name && (
+              <FavoriteButton active={favorite} onToggle={onToggleFavorite} />
+            )}
           </SheetTitle>
           <SheetDescription>
             {trend
@@ -96,9 +114,9 @@ export function NameTrend({ dataset, name, onClose }: NameTrendProps) {
                   <YAxis
                     tickLine={false}
                     axisLine={false}
-                    width={48}
+                    width={64}
                     allowDecimals={false}
-                    tickFormatter={formatNumber}
+                    tickFormatter={formatCompact}
                   />
                   <ChartTooltip content={<ChartTooltipContent />} />
                   {sexes.length > 1 && (

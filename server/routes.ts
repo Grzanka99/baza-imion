@@ -16,6 +16,7 @@ import { queryNames, queryTrend } from "./names.js"
 // extension because Vercel runs these files as plain Node ES modules.
 
 const MAX_PER_PAGE = 100
+const MAX_ONLY_NAMES = 500
 
 class BadRequest extends Error {}
 class NotFound extends Error {}
@@ -81,6 +82,20 @@ function api<T>(handler: (params: URLSearchParams) => Promise<T>) {
   }
 }
 
+/** The `names` parameter: a comma-separated list; present but empty means none. */
+function onlyNames(params: URLSearchParams) {
+  const raw = params.get("names")
+  if (raw === null) return undefined
+  const names = raw
+    .split(",")
+    .map((name) => name.trim().toUpperCase())
+    .filter(Boolean)
+  if (names.length > MAX_ONLY_NAMES) {
+    throw new BadRequest(`names takes at most ${MAX_ONLY_NAMES} names`)
+  }
+  return names
+}
+
 export const handleNames = api((params) => {
   const selected = dataset(params)
   return queryNames({
@@ -93,6 +108,7 @@ export const handleNames = api((params) => {
     page: integer(params, "page", 1, 1, Number.MAX_SAFE_INTEGER),
     perPage: integer(params, "perPage", 25, 1, MAX_PER_PAGE),
     random: params.get("random") === "1",
+    only: onlyNames(params),
   })
 })
 

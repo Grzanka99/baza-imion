@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Dices, X } from "lucide-react"
+import { Dices, Heart, X } from "lucide-react"
 
 import { Collapse } from "@/components/collapse"
 import { NameTrend } from "@/components/name-trend"
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useApi } from "@/hooks/use-api"
+import { useFavorites } from "@/hooks/use-favorites"
 import { usePhoneBar } from "@/hooks/use-phone-bar"
 import { naturalOrder, useView } from "@/hooks/use-view"
 import {
@@ -26,6 +27,7 @@ import {
   formatPercent,
   plural,
 } from "@/lib/format"
+import { cn } from "@/lib/utils"
 import {
   DATASET_YEARS,
   defaultYear,
@@ -43,13 +45,15 @@ export function App() {
   // Remounts the search box, which owns the typed text.
   const [resetCount, setResetCount] = useState(0)
   const { bar, collapsed, scrollToList } = usePhoneBar()
+  const favorites = useFavorites()
 
   const filtered =
     search !== "" ||
     sex !== "all" ||
     year !== defaultYear(dataset) ||
     sort !== "count" ||
-    order !== "desc"
+    order !== "desc" ||
+    view.favorites
 
   function resetFilters() {
     update({
@@ -59,6 +63,7 @@ export function App() {
       sort: "count",
       order: "desc",
       page: 1,
+      favorites: false,
     })
     setResetCount(resetCount + 1)
   }
@@ -73,6 +78,7 @@ export function App() {
     page: String(page),
     perPage: String(PER_PAGE),
   })
+  if (view.favorites) params.set("names", favorites.names.join(","))
   const { data, error, loading } = useApi<NamesResponse>(`/api/names?${params}`)
 
   function changeSort(key: SortKey) {
@@ -192,7 +198,7 @@ export function App() {
                 })
               }
             >
-              <SelectTrigger aria-label="Rok" className="w-36 sm:w-40">
+              <SelectTrigger aria-label="Rok" className="w-auto sm:w-40">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent
@@ -201,7 +207,9 @@ export function App() {
                 className="max-h-72"
               >
                 {dataset === "children" && (
-                  <SelectItem value="all">Wszystkie lata</SelectItem>
+                  <SelectItem value="all">
+                    Wszystkie<span className="hidden sm:inline"> lata</span>
+                  </SelectItem>
                 )}
                 {DATASET_YEARS[dataset].toReversed().map((option) => (
                   <SelectItem key={option} value={String(option)}>
@@ -219,6 +227,19 @@ export function App() {
               onClick={drawName}
             >
               <Dices />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              aria-pressed={view.favorites}
+              aria-label="Pokaż tylko ulubione"
+              title="Pokaż tylko ulubione"
+              className={cn(view.favorites && "bg-muted")}
+              onClick={() => update({ favorites: !view.favorites, page: 1 })}
+            >
+              <Heart
+                className={cn(view.favorites && "fill-rose-500 text-rose-500")}
+              />
             </Button>
           </div>
         </Collapse>
@@ -253,6 +274,13 @@ export function App() {
         onSort={changeSort}
         onSelect={(name) => update({ name })}
         onNewRows={scrollToList}
+        isFavorite={favorites.has}
+        onToggleFavorite={favorites.toggle}
+        emptyText={
+          view.favorites && favorites.names.length === 0
+            ? "Nie masz jeszcze ulubionych imion. Dodaj je serduszkiem przy imieniu."
+            : "Brak imion pasujących do wyszukiwania."
+        }
       />
 
       <Pagination
@@ -266,6 +294,8 @@ export function App() {
         dataset={dataset}
         name={view.name}
         onClose={() => update({ name: null })}
+        favorite={view.name !== null && favorites.has(view.name)}
+        onToggleFavorite={() => view.name && favorites.toggle(view.name)}
       />
     </div>
   )

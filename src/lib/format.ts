@@ -8,6 +8,11 @@ const percentFormat = new Intl.NumberFormat("pl-PL", {
 })
 
 export const formatNumber = (value: number) => numberFormat.format(value)
+
+const compactFormat = new Intl.NumberFormat("pl-PL", { notation: "compact" })
+
+/** Short form for chart axes: 1 mln, 250 tys. */
+export const formatCompact = (value: number) => compactFormat.format(value)
 /** Shares too small to show as 0,01% say so, instead of reading as zero. */
 export function formatPercent(value: number) {
   return value > 0 && value < 0.00005

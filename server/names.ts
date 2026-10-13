@@ -142,6 +142,8 @@ export interface NamesQuery {
   perPage: number
   /** Answer with one random uncommon name instead of a page of the list. */
   random?: boolean
+  /** List only these names (the visitor's favourites). */
+  only?: string[]
 }
 
 export async function queryNames(query: NamesQuery): Promise<NamesResponse> {
@@ -150,9 +152,12 @@ export async function queryNames(query: NamesQuery): Promise<NamesResponse> {
   // The scope's rows are shared between requests, so they are never reordered
   // in place.
   const needle = query.random ? "" : fold(query.search.trim())
-  let matched = needle
-    ? scope.rows.filter((row) => row.folded.includes(needle))
-    : scope.rows
+  let matched = scope.rows
+  if (query.only && !query.random) {
+    const only = new Set(query.only)
+    matched = matched.filter((row) => only.has(row.name))
+  }
+  if (needle) matched = matched.filter((row) => row.folded.includes(needle))
   if (query.random) {
     matched = pickRare(scope.rows)
   } else if (query.sort === "name") {
@@ -190,9 +195,9 @@ export async function queryNames(query: NamesQuery): Promise<NamesResponse> {
     perPage: query.perPage,
     matchedNames: matched.length,
     matchedCount:
-      needle || query.random
-        ? matched.reduce((sum, row) => sum + row.count, 0)
-        : scope.count,
+      matched === scope.rows
+        ? scope.count
+        : matched.reduce((sum, row) => sum + row.count, 0),
     scopeNames: scope.rows.length,
     scopeCount: scope.count,
     fetchedAt: scope.fetchedAt,
