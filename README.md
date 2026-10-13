@@ -11,11 +11,11 @@ udostępnianych przez dane.gov.pl:
 
 ## Uruchomienie
 
-Wymaga [Bun](https://bun.sh).
+Wymaga [Vite+](https://viteplus.dev) (`vp`).
 
 ```sh
-bun install
-bun run dev      # interfejs: http://localhost:5173, API: http://localhost:8787
+vp install
+vp run dev       # interfejs: http://localhost:5173, API: http://localhost:8787
 ```
 
 Pamięć podręczna trafia do bazy Turso wskazanej w pliku `.env`:
@@ -31,9 +31,11 @@ po jego restarcie.
 Wersja produkcyjna (jeden serwer na porcie `PORT`, domyślnie 8787):
 
 ```sh
-bun run build
-bun run start
+vp run build
+vp run start
 ```
+
+Formatowanie, lint i typy sprawdza `vp check`.
 
 ## Wdrożenie na Vercel
 
@@ -59,7 +61,7 @@ z dane.gov.pl od zera.
 
 ```
 server/
-  index.ts      samodzielny serwer Bun (lokalnie i `bun run start`)
+  index.ts      samodzielny serwer Node (lokalnie i `vp run start`)
   http/         obsługa zapytań: odczyt parametrów, odpowiedzi JSON, błędy
   names/        dane o imionach: wczytywanie roczników, ranking, lista, trend
   upstream/     pobieranie i czytanie plików CSV z dane.gov.pl
@@ -80,17 +82,17 @@ src/
 
 Żeby ograniczyć liczbę zapytań, odpowiedzi są zapamiętywane na każdym etapie:
 
-| Gdzie | Na jak długo | Co oszczędza |
-|---|---|---|
-| przeglądarka (`localStorage`) | 7 dni, do następnej wersji aplikacji | zapytania do serwera |
-| CDN Vercel | 7 dni, do następnego wdrożenia | uruchomienia funkcji |
-| pamięć procesu serwera | 10 dni albo do restartu | zapytania do bazy |
-| baza Turso | 10 dni | zapytania do dane.gov.pl |
+| Gdzie                         | Na jak długo                         | Co oszczędza             |
+| ----------------------------- | ------------------------------------ | ------------------------ |
+| przeglądarka (`localStorage`) | 7 dni, do następnej wersji aplikacji | zapytania do serwera     |
+| CDN Vercel                    | 7 dni, do następnego wdrożenia       | uruchomienia funkcji     |
+| pamięć procesu serwera        | 10 dni albo do restartu              | zapytania do bazy        |
+| baza Turso                    | 10 dni                               | zapytania do dane.gov.pl |
 
-| Endpoint | Parametry |
-|---|---|
+| Endpoint         | Parametry                                                                                                                                                                                                                                                             |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `GET /api/names` | `dataset` (`population`, `children`), `year` (rok lub `all` dla noworodków), `sex` (`all`, `M`, `K`), `q`, `sort` (`count`, `name`), `order` (`desc`, `asc`), `page`, `perPage`, `random=1` (jedno losowe, rzadkie imię), `names` (tylko podane imiona, po przecinku) |
-| `GET /api/trend` | `dataset`, `name` |
+| `GET /api/trend` | `dataset`, `name`                                                                                                                                                                                                                                                     |
 
 Nowy rocznik danych wymaga dopisania identyfikatorów plików w
 `server/upstream/resource-ids.ts` i roku w `shared/api.ts`.

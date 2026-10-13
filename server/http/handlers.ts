@@ -5,7 +5,7 @@ import { BadRequest, NotFound } from "./errors.js"
 import { dataset, integer, oneOf, onlyNames, yearFilter } from "./params.js"
 import { api } from "./respond.js"
 
-// The HTTP handlers, shared by the Bun server (server/index.ts) and the
+// The HTTP handlers, shared by the Node server (server/index.ts) and the
 // Vercel functions (api/*.ts). Relative imports on this side carry a .js
 // extension because Vercel runs these files as plain Node ES modules.
 

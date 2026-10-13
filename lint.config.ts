@@ -1,15 +1,16 @@
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["typescript", "react"],
-  "categories": {
-    "correctness": "off"
+import type { UserConfig } from "vite-plus"
+
+export const lint: UserConfig["lint"] = {
+  plugins: ["typescript", "react"],
+  categories: {
+    correctness: "off",
   },
-  "env": {
-    "builtin": true,
-    "browser": true
+  env: {
+    builtin: true,
+    browser: true,
   },
-  "ignorePatterns": ["dist"],
-  "rules": {
+  ignorePatterns: ["dist"],
+  rules: {
     "constructor-super": "error",
     "for-direction": "error",
     "getter-return": "error",
@@ -103,14 +104,25 @@
     "react/error-boundaries": "error",
     "react/purity": "error",
     "react/set-state-in-render": "error",
-    "react/unsupported-syntax": "warn"
+    "react/unsupported-syntax": "warn",
+    "vite-plus/prefer-vite-plus-imports": "error",
   },
-  "overrides": [
+  overrides: [
     {
-      "files": ["src/components/ui/**", "src/components/theme-provider.tsx"],
-      "rules": {
-        "no-ternary": "off"
-      }
-    }
-  ]
+      files: ["src/components/ui/**", "src/components/theme-provider.tsx"],
+      rules: {
+        "no-ternary": "off",
+      },
+    },
+  ],
+  options: {
+    typeAware: true,
+    typeCheck: true,
+  },
+  jsPlugins: [
+    {
+      name: "vite-plus",
+      specifier: "vite-plus/oxlint-plugin",
+    },
+  ],
 }
