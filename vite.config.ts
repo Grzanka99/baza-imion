@@ -1,12 +1,17 @@
-import { resolve } from "node:path"
-import tailwindcss from "@tailwindcss/vite"
-import react from "@vitejs/plugin-react"
-import { defineConfig, lazyPlugins } from "vite-plus"
+import { defineConfig } from "vite-plus"
 
 import { lint } from "./lint.config.ts"
 
-// https://vite.dev/config/
+// Formatting and lint for the whole workspace. Each app keeps its own
+// vite.config.ts for building and serving.
 export default defineConfig({
+  // Targets of bare `vp dev`, `vp build`, `vp preview` and `vp pack` here.
+  defaultPackage: {
+    dev: "./apps/web",
+    build: "./apps/web",
+    preview: "./apps/web",
+    pack: "./apps/server",
+  },
   fmt: {
     endOfLine: "lf",
     semi: false,
@@ -15,27 +20,9 @@ export default defineConfig({
     trailingComma: "es5",
     printWidth: 80,
     sortTailwindcss: {
-      stylesheet: "src/index.css",
+      stylesheet: "apps/web/src/index.css",
       functions: ["cn", "cva"],
     },
   },
   lint,
-  plugins: lazyPlugins(() => [react(), tailwindcss()]),
-  define: {
-    // Changes with every build; the app uses it to drop answers it cached
-    // under an earlier version.
-    __BUILD_ID__: JSON.stringify(Date.now().toString(36)),
-  },
-  resolve: {
-    alias: {
-      "@": resolve(import.meta.dirname, "./src"),
-    },
-  },
-  server: {
-    host: "0.0.0.0",
-    allowedHosts: true,
-    proxy: {
-      "/api": "http://localhost:8787",
-    },
-  },
 })

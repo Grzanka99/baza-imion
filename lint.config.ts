@@ -7,9 +7,8 @@ export const lint: UserConfig["lint"] = {
   },
   env: {
     builtin: true,
-    browser: true,
   },
-  ignorePatterns: ["dist"],
+  ignorePatterns: ["**/dist"],
   rules: {
     "constructor-super": "error",
     "for-direction": "error",
@@ -114,7 +113,18 @@ export const lint: UserConfig["lint"] = {
   },
   overrides: [
     {
-      files: ["src/components/ui/**", "src/components/theme-provider.tsx"],
+      files: ["apps/web/**"],
+      env: { browser: true },
+    },
+    {
+      files: ["apps/server/**", "api/**"],
+      env: { node: true },
+    },
+    {
+      files: [
+        "apps/web/src/components/ui/**",
+        "apps/web/src/components/theme-provider.tsx",
+      ],
       rules: {
         "no-ternary": "off",
       },

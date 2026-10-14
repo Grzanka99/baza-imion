@@ -3,9 +3,9 @@
   "framework": "vite",
   "installCommand": "pnpm install",
   "buildCommand": "pnpm run build",
-  "outputDirectory": "dist",
+  "outputDirectory": "apps/web/dist",
   "functions": {
-    "api/*.ts": {
+    "api/*.js": {
       "maxDuration": 60
     }
   }

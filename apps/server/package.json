@@ -1,0 +1,23 @@
+{
+  "name": "@baza-imion/server",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./handlers": "./dist/handlers.mjs"
+  },
+  "scripts": {
+    "dev": "node --env-file-if-exists=../../.env --watch src/index.ts",
+    "build": "tsc && vp pack",
+    "start": "node --env-file-if-exists=../../.env dist/index.mjs"
+  },
+  "dependencies": {
+    "@baza-imion/shared": "workspace:*",
+    "@libsql/client": "^0.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vite-plus": "catalog:"
+  }
+}
