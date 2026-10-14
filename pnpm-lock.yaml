@@ -164,6 +164,12 @@ settings:
 
 catalogs:
   default:
+    '@types/node':
+      specifier: ^24
+      version: 24.19.2
+    typescript:
+      specifier: ~6.0.2
+      version: 6.0.3
     vite:
       specifier: npm:@voidzero-dev/vite-plus-core@1.1.0
       version: 1.1.0
@@ -178,12 +184,47 @@ importers:
 
   .:
     dependencies:
-      '@fontsource-variable/geist':
-        specifier: ^5.3.0
-        version: 5.3.0
+      '@baza-imion/server':
+        specifier: workspace:*
+        version: link:apps/server
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.19.2
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      vite-plus:
+        specifier: 'catalog:'
+        version: 1.1.0(@types/node@24.19.2)(@vitest/ui@5.0.3)(jiti@2.7.0)(typescript@6.0.3)
+
+  apps/server:
+    dependencies:
+      '@baza-imion/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@libsql/client':
         specifier: ^0.18.0
         version: 0.18.0
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.19.2
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      vite-plus:
+        specifier: 'catalog:'
+        version: 1.1.0(@types/node@24.19.2)(@vitest/ui@5.0.3)(jiti@2.7.0)(typescript@6.0.3)
+
+  apps/web:
+    dependencies:
+      '@baza-imion/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      '@fontsource-variable/geist':
+        specifier: ^5.3.0
+        version: 5.3.0
       '@tailwindcss/vite':
         specifier: ^4
         version: 4.3.3(@voidzero-dev/vite-plus-core@1.1.0(@types/node@24.19.2)(jiti@2.7.0)(typescript@6.0.3))
@@ -219,7 +260,7 @@ importers:
         version: 1.4.0
     devDependencies:
       '@types/node':
-        specifier: ^24
+        specifier: 'catalog:'
         version: 24.19.2
       '@types/react':
         specifier: ^19
@@ -231,7 +272,7 @@ importers:
         specifier: ^6
         version: 6.1.2(@voidzero-dev/vite-plus-core@1.1.0(@types/node@24.19.2)(jiti@2.7.0)(typescript@6.0.3))
       typescript:
-        specifier: ~6.0.2
+        specifier: 'catalog:'
         version: 6.0.3
       vite:
         specifier: 'catalog:'
@@ -239,6 +280,12 @@ importers:
       vite-plus:
         specifier: 'catalog:'
         version: 1.1.0(@types/node@24.19.2)(@vitest/ui@5.0.3)(jiti@2.7.0)(typescript@6.0.3)
+
+  packages/shared:
+    devDependencies:
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
 
 packages:
 

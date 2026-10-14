@@ -1,14 +1,9 @@
 {
   "files": [],
   "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" },
-    { "path": "./tsconfig.server.json" }
-  ],
-  "compilerOptions": {
-    "types": ["node"],
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  }
+    { "path": "./apps/web" },
+    { "path": "./apps/server" },
+    { "path": "./packages/shared" },
+    { "path": "./tsconfig.node.json" }
+  ]
 }

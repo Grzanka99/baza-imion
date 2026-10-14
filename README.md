@@ -40,8 +40,8 @@ Formatowanie, lint i typy sprawdza `vp check`.
 ## Wdrożenie na Vercel
 
 Repozytorium jest gotowe do importu w Vercel (`vercel.json`): interfejs jest
-budowany jako statyczna strona, a `api/names.ts` i `api/trend.ts` działają
-jako funkcje Node.js.
+budowany jako statyczna strona, a `api/names.js` i `api/trend.js` działają
+jako funkcje Node.js (wywołują zbudowany `apps/server`).
 
 1. Zaimportuj repozytorium w Vercel.
 2. W ustawieniach projektu dodaj zmienne środowiskowe `TURSO_URL`
@@ -53,21 +53,25 @@ z dane.gov.pl od zera.
 
 ## Jak to działa
 
-- `src/` – interfejs (React, shadcn/ui na Radix).
-- `api/` – punkty wejścia funkcji Vercel; korzystają z kodu w `server/`.
-- `server/` – pośrednik między interfejsem a dane.gov.pl. Pobiera dane
+Monorepo Vite+ (pnpm workspace):
+
+- `apps/web/` – interfejs (React, shadcn/ui na Radix).
+- `apps/server/` – pośrednik między interfejsem a dane.gov.pl. Pobiera dane
   całymi plikami CSV, liczy miejsca w rankingu, udziały i sumy.
-- `shared/` – typy wspólne dla obu części.
+- `packages/shared/` – typy wspólne dla obu części.
+- `api/` – punkty wejścia funkcji Vercel; korzystają ze zbudowanego
+  `apps/server`. Vercel szuka funkcji tylko w `api/` w katalogu głównym.
+- `vite.config.ts` – formatowanie i lint dla całego repozytorium.
 
 ```
-server/
+apps/server/src/
   index.ts      samodzielny serwer Node (lokalnie i `vp run start`)
   http/         obsługa zapytań: odczyt parametrów, odpowiedzi JSON, błędy
   names/        dane o imionach: wczytywanie roczników, ranking, lista, trend
   upstream/     pobieranie i czytanie plików CSV z dane.gov.pl
   cache/        pamięć podręczna: pamięć procesu i baza Turso
 
-src/
+apps/web/src/
   App.tsx       układ strony; łączy stan widoku z komponentami
   api-client/   zapytania do serwera i pamięć odpowiedzi w przeglądarce
   features/
@@ -95,4 +99,5 @@ src/
 | `GET /api/trend` | `dataset`, `name`                                                                                                                                                                                                                                                     |
 
 Nowy rocznik danych wymaga dopisania identyfikatorów plików w
-`server/upstream/resource-ids.ts` i roku w `shared/api.ts`.
+`apps/server/src/upstream/resource-ids.ts` i roku w
+`packages/shared/src/index.ts`.
