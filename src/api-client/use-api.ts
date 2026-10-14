@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react"
 
-import { isFresh, recall, remember } from "@/lib/answer-cache"
+import {
+  isFresh,
+  recall,
+  remember,
+  type Answer,
+} from "@/api-client/answer-cache"
 
 const FALLBACK_ERROR = "Nie udało się pobrać danych"
 
@@ -43,11 +48,13 @@ export function useApi<T>(url: string | null) {
   }, [url])
 
   // An answer past its age is still shown while its replacement loads.
-  const known = url ? recall(url) : undefined
+  let known: Answer | undefined
+  if (url) known = recall(url)
   const current = settled?.url === url
-  return {
-    data: known ? (known.data as T) : settled?.data,
-    error: current ? settled?.error : undefined,
-    loading: url !== null && !known && !current,
-  }
+
+  let data = settled?.data
+  if (known) data = known.data as T
+  let error: string | undefined
+  if (current) error = settled?.error
+  return { data, error, loading: url !== null && !known && !current }
 }

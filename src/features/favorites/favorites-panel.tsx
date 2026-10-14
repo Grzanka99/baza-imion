@@ -1,13 +1,14 @@
-import { FavoriteButton } from "@/components/favorite-button"
-import { useApi } from "@/hooks/use-api"
+import { namesUrl } from "@/api-client/urls"
+import { useApi } from "@/api-client/use-api"
 import { SexIcons } from "@/components/sex-icon"
-import { displayName, formatNumber, formatPercent } from "@/lib/format"
+import { FavoriteButton } from "@/features/favorites/favorite-button"
+import { displayName, formatCount, formatPercent } from "@/lib/format"
 import type {
   Dataset,
   NamesResponse,
   SexFilter,
   YearFilter,
-} from "../../shared/api"
+} from "../../../shared/api"
 
 // The most rows the API returns at once; favourites beyond that are still
 // listed, just without figures.
@@ -32,14 +33,9 @@ export function FavoritesPanel({
   onSelect,
   onToggle,
 }: FavoritesPanelProps) {
-  const params = new URLSearchParams({
-    dataset,
-    year: String(year),
-    sex,
-    names: names.join(","),
-    perPage: String(MAX_WITH_FIGURES),
-  })
-  const { data } = useApi<NamesResponse>(`/api/names?${params}`)
+  const { data } = useApi<NamesResponse>(
+    namesUrl({ dataset, year, sex, names, perPage: MAX_WITH_FIGURES })
+  )
 
   // Names with figures come first, most common on top; the rest (absent from
   // this dataset, year or sex) follow alphabetically.
@@ -76,7 +72,7 @@ export function FavoritesPanel({
                 {displayName(name)}
               </button>
               <span className="text-right tabular-nums">
-                {row ? formatNumber(row.count) : "–"}
+                {formatCount(row?.count)}
               </span>
               <span className="text-center">
                 {row && <SexIcons dataset={dataset} row={row} />}

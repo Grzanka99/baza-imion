@@ -12,7 +12,7 @@ export function Collapse({
   children,
 }: {
   open: boolean
-  className?: string
+  className: string
   children: ReactNode
 }) {
   return (
@@ -20,7 +20,8 @@ export function Collapse({
       inert={!open}
       className={cn(
         "grid transition-[grid-template-rows,opacity] duration-200 ease-out motion-reduce:transition-none sm:contents",
-        open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+        open && "grid-rows-[1fr] opacity-100",
+        !open && "grid-rows-[0fr] opacity-0"
       )}
     >
       {/* Padding goes on the innermost box: on the clipped one it would keep

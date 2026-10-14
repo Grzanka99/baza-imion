@@ -6,10 +6,13 @@
 const BACKGROUND = { light: "#ffffff", dark: "#0a0a0a" }
 
 function sync() {
-  const dark = document.documentElement.classList.contains("dark")
+  let color = BACKGROUND.light
+  if (document.documentElement.classList.contains("dark")) {
+    color = BACKGROUND.dark
+  }
   for (const tag of document.querySelectorAll('meta[name="theme-color"]')) {
     tag.removeAttribute("media")
-    tag.setAttribute("content", dark ? BACKGROUND.dark : BACKGROUND.light)
+    tag.setAttribute("content", color)
   }
 }
 

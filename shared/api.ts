@@ -24,8 +24,20 @@ export const DATASET_YEARS: Record<Dataset, number[]> = {
 
 /** Births add up across years; population snapshots do not. */
 export function defaultYear(dataset: Dataset): YearFilter {
+  if (dataset === "children") return "all"
   const years = DATASET_YEARS.population
-  return dataset === "children" ? "all" : years[years.length - 1]
+  return years[years.length - 1]
+}
+
+/** The order a sort starts in: names from A, counts from the highest. */
+export function naturalOrder(sort: SortKey): SortOrder {
+  if (sort === "name") return "asc"
+  return "desc"
+}
+
+export function oppositeOrder(order: SortOrder): SortOrder {
+  if (order === "asc") return "desc"
+  return "asc"
 }
 
 export interface NameRow {

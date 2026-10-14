@@ -1,38 +1,16 @@
-import type { Dataset, Sex, SexFilter } from "../shared/api.js"
-import { cached, prime } from "./cache.js"
+import type { Dataset, Sex, SexFilter } from "../../shared/api.js"
+import { cached, prime } from "../cache/cache.js"
 import {
   fetchChildrenHistory,
-  fetchNameCounts,
   type YearEntry,
-} from "./upstream.js"
+} from "../upstream/children-history.js"
+import { YEARLY_LISTS } from "../upstream/resource-ids.js"
+import { fetchNameCounts } from "../upstream/yearly-list.js"
 
 /** One cached upstream answer: a year of names for one sex or both. */
 export interface Slice {
   fetchedAt: number
   forEach(visit: (name: string, sex: Sex, count: number) => void): void
-}
-
-// dane.gov.pl resource ids of the yearly first-name lists, one per sex.
-// Children before 2020 come from a single file covering 2000-2019 instead.
-const FILES: Record<Dataset, Record<number, Record<Sex, number>>> = {
-  children: {
-    2020: { M: 28020, K: 28021 },
-    2021: { M: 36393, K: 36394 },
-    2022: { M: 44825, K: 44824 },
-    2023: { M: 54099, K: 54100 },
-    2024: { M: 63900, K: 63899 },
-    2025: { M: 1159536, K: 1159538 },
-  },
-  population: {
-    2019: { M: 18606, K: 18608 },
-    2020: { M: 21487, K: 21489 },
-    2021: { M: 28104, K: 28103 },
-    2022: { M: 42873, K: 42874 },
-    2023: { M: 44834, K: 44838 },
-    2024: { M: 54109, K: 54110 },
-    2025: { M: 63929, K: 63924 },
-    2026: { M: 1159669, K: 1159670 },
-  },
 }
 
 const historyKey = (year: number) => `year:${year}`
@@ -63,9 +41,10 @@ export async function loadYear(
   year: number,
   sex: SexFilter = "all"
 ): Promise<Slice[]> {
-  const files = FILES[dataset][year]
+  const files = YEARLY_LISTS[dataset][year]
   if (files) {
-    const sexes: Sex[] = sex === "all" ? ["M", "K"] : [sex]
+    let sexes: Sex[] = ["M", "K"]
+    if (sex !== "all") sexes = [sex]
     return Promise.all(sexes.map((each) => loadFile(files[each], each)))
   }
 
