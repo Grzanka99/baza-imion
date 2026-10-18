@@ -1,7 +1,7 @@
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import type { SortOrder } from "@baza-imion/shared"
+import type { SortKey, SortOrder } from "@baza-imion/shared"
 
 function SortArrow({ sorted, order }: { sorted: boolean; order: SortOrder }) {
   if (!sorted) {
@@ -15,19 +15,25 @@ function SortArrow({ sorted, order }: { sorted: boolean; order: SortOrder }) {
 
 /** A column heading that sorts the list by its column; the arrow shows the order. */
 export function SortButton({
+  column,
   label,
   sorted,
   order,
   onSort,
 }: {
+  column: SortKey
   label: string
   /** Whether the list is sorted by this column. */
   sorted: boolean
   order: SortOrder
-  onSort: () => void
+  onSort: (column: SortKey) => void
 }) {
+  function handleOnClick() {
+    onSort(column)
+  }
+
   return (
-    <Button variant="ghost" size="sm" className="-mx-2" onClick={onSort}>
+    <Button variant="ghost" size="sm" className="-mx-2" onClick={handleOnClick}>
       {label}
       <SortArrow sorted={sorted} order={order} />
     </Button>

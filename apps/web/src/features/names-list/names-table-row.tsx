@@ -14,11 +14,19 @@ export function NamesTableRow({
   dataset: Dataset
   row: NameRow
   favorite: boolean
-  onSelect: () => void
-  onToggleFavorite: () => void
+  onSelect: (name: string) => void
+  onToggleFavorite: (name: string) => void
 }) {
+  function handleOnClick() {
+    onSelect(row.name)
+  }
+
+  function handleOnToggleFavorite() {
+    onToggleFavorite(row.name)
+  }
+
   return (
-    <TableRow className="cursor-pointer" onClick={onSelect}>
+    <TableRow className="cursor-pointer" onClick={handleOnClick}>
       <TableCell className="pl-4 text-right text-muted-foreground tabular-nums sm:pl-2">
         {row.rank}
       </TableCell>
@@ -41,7 +49,7 @@ export function NamesTableRow({
         {formatPercent(row.share)}
       </TableCell>
       <TableCell className="py-0 pr-3 pl-0 sm:pr-1">
-        <FavoriteButton active={favorite} onToggle={onToggleFavorite} />
+        <FavoriteButton active={favorite} onToggle={handleOnToggleFavorite} />
       </TableCell>
     </TableRow>
   )

@@ -59,10 +59,11 @@ export function NamesTable({
 
   const sortButton = (key: SortKey, label: string) => (
     <SortButton
+      column={key}
       label={label}
       sorted={sort === key}
       order={order}
-      onSort={() => onSort(key)}
+      onSort={onSort}
     />
   )
 
@@ -120,8 +121,8 @@ export function NamesTable({
               dataset={dataset}
               row={row}
               favorite={isFavorite(row.name)}
-              onSelect={() => onSelect(row.name)}
-              onToggleFavorite={() => onToggleFavorite(row.name)}
+              onSelect={onSelect}
+              onToggleFavorite={onToggleFavorite}
             />
           ))}
         </TableBody>

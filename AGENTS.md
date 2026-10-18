@@ -16,6 +16,11 @@ Code here branches with `if`/`else`, never the ternary operator, and every
 handled with string methods (`split`, `startsWith`, `includes`, `slice`) in
 place of regex, which stays only where nothing else fits.
 
+JSX never holds inline handlers. Each component declares them as plain
+functions named after the prop, like `function handleOnKeyDown(event)`, and
+passes them by name. `useCallback` is kept for the few that need a stable
+identity.
+
 Vite+ (`vp`) runs install, dev, build, and `vp check` (format, lint, types).
 At each commit, `vp staged` stops any staged file over 5,000 tokens (bytes / 4)
 and explains how to split it. It skips files marked `linguist-generated` in
