@@ -70,6 +70,12 @@ export function trackName(event: string, name: string, wanted = () => true) {
   flush()
 }
 
+export function dropName(event: string, name: string) {
+  if (ANALYTICS) {
+    pending.delete(`${event}:${canonical(name)}`)
+  }
+}
+
 /** Records the names in an API answer as safe to send. */
 export function learnNames(answer: unknown) {
   if (!ANALYTICS || !answer || typeof answer !== "object") {
