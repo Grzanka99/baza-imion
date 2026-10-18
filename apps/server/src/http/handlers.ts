@@ -5,9 +5,11 @@ import { BadRequest, NotFound } from "./errors.ts"
 import { dataset, integer, oneOf, onlyNames, yearFilter } from "./params.ts"
 import { api } from "./respond.ts"
 
+export { handleRobots, handleSitemap, namePageHandler } from "./pages.ts"
+
 // The HTTP handlers, shared by the Node server (src/index.ts) and the
 // Vercel functions (api/*.js at the repository root), which load them from
-// the bundle `vp pack` builds.
+// the bundle `vp pack` builds. The HTML pages come from pages.ts.
 
 const MAX_PER_PAGE = 100
 

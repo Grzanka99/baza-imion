@@ -7,8 +7,14 @@ import {
 import { extname, join, normalize } from "node:path"
 import { pipeline } from "node:stream"
 
-import type { ApiError } from "@baza-imion/shared"
-import { handleNames, handleTrend } from "./http/handlers.ts"
+import { NAME_PATH, type ApiError } from "@baza-imion/shared"
+import {
+  handleNames,
+  handleRobots,
+  handleSitemap,
+  handleTrend,
+  namePageHandler,
+} from "./http/handlers.ts"
 
 // The standalone server: `vp run dev` and `vp run start`.
 // On Vercel the frontend is static and api/*.js serve the same handlers.
@@ -20,6 +26,21 @@ const PORT = Number(process.env.PORT ?? 8787)
 const ROUTES: Record<string, (request: Request) => Promise<Response>> = {
   "/api/names": handleNames,
   "/api/trend": handleTrend,
+  "/api/page": namePageHandler(join(DIST, "index.html")),
+  "/api/sitemap": handleSitemap,
+  "/api/robots": handleRobots,
+}
+
+/** The rewrites in vercel.json, so both servers answer the same paths. */
+function rewrite(url: URL) {
+  if (url.pathname.startsWith(NAME_PATH)) {
+    url.searchParams.set("name", url.pathname.slice(NAME_PATH.length))
+    url.pathname = "/api/page"
+  } else if (url.pathname === "/sitemap.xml") {
+    url.pathname = "/api/sitemap"
+  } else if (url.pathname === "/robots.txt") {
+    url.pathname = "/api/robots"
+  }
 }
 
 const CONTENT_TYPE: Record<string, string> = {
@@ -78,7 +99,12 @@ async function sendFile(pathname: string, res: ServerResponse) {
 
 async function handle(req: IncomingMessage, res: ServerResponse) {
   try {
-    const url = new URL(req.url ?? "/", "http://localhost")
+    // The host makes the canonical links on name pages.
+    const url = new URL(
+      req.url ?? "/",
+      `http://${req.headers.host ?? "localhost"}`
+    )
+    rewrite(url)
     if (url.pathname.startsWith("/api/")) {
       await sendApi(url, req.method ?? "GET", res)
     } else {

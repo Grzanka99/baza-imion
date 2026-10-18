@@ -13,10 +13,16 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { FavoriteButton } from "@/features/favorites/favorite-button"
 import { TrendChart } from "@/features/name-trend/trend-chart"
 import { TrendTable } from "@/features/name-trend/trend-table"
+import { usePageTitle } from "@/hooks/use-page-title"
 import { trackName } from "@/lib/analytics"
 import { displayName, formatCount, formatNumber } from "@/lib/format"
 import { SEX_LABEL } from "@/lib/labels"
-import type { Dataset, Sex, TrendResponse } from "@baza-imion/shared"
+import {
+  nameTitle,
+  type Dataset,
+  type Sex,
+  type TrendResponse,
+} from "@baza-imion/shared"
 
 const SEXES: Sex[] = ["M", "K"]
 
@@ -58,6 +64,12 @@ export function NameTrend({
       trackName("trend-opened", shown)
     }
   }, [name, shown])
+
+  let title: string | null = null
+  if (name && shown) {
+    title = nameTitle(shown)
+  }
+  usePageTitle(title)
 
   const totals = trend?.totals ?? { M: 0, K: 0 }
   const sexes = SEXES.filter((sex) => totals[sex] > 0)

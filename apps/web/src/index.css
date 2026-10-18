@@ -3,6 +3,9 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
 
+/* Classes in the pages the server renders before the app starts. */
+@source "../../server/src/pages";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

@@ -2,7 +2,9 @@ import { SexIcons } from "@/components/sex-icon"
 import { TableCell, TableRow } from "@/components/ui/table"
 import { FavoriteButton } from "@/features/favorites/favorite-button"
 import { displayName, formatNumber, formatPercent } from "@/lib/format"
-import type { Dataset, NameRow } from "@baza-imion/shared"
+import type { MouseEvent } from "react"
+
+import { namePath, type Dataset, type NameRow } from "@baza-imion/shared"
 
 export function NamesTableRow({
   dataset,
@@ -21,6 +23,15 @@ export function NamesTableRow({
     onSelect(row.name)
   }
 
+  /** A plain click opens the trend in place, through the row; Ctrl, Cmd or Shift opens the page as the browser would. */
+  function handleOnLinkClick(event: MouseEvent<HTMLAnchorElement>) {
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
+      event.stopPropagation()
+      return
+    }
+    event.preventDefault()
+  }
+
   function handleOnToggleFavorite() {
     onToggleFavorite(row.name)
   }
@@ -31,13 +42,14 @@ export function NamesTableRow({
         {row.rank}
       </TableCell>
       <TableCell>
-        {/* Keyboard access to the row; its click bubbles up to the row. */}
-        <button
-          type="button"
+        {/* Keyboard access to the row, and the page search engines follow. */}
+        <a
+          href={namePath(row.name)}
           className="cursor-pointer rounded-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          onClick={handleOnLinkClick}
         >
           {displayName(row.name)}
-        </button>
+        </a>
       </TableCell>
       <TableCell className="text-right tabular-nums">
         {formatNumber(row.count)}

@@ -15,10 +15,42 @@
       content="#0a0a0a"
       media="(prefers-color-scheme: dark)"
     />
-    <title>Baza imion</title>
+    <!-- seo: the server swaps this part for each name's page (apps/server/src/pages) -->
+    <title>Baza imion – ranking imion w Polsce z rejestru PESEL</title>
+    <meta
+      name="description"
+      content="Wyszukiwarka i ranking imion w Polsce: ile osób nosi dane imię i jak często nadawano je dzieciom od 2000 roku. Dane z rejestru PESEL (dane.gov.pl)."
+    />
+    <!-- vite-ignore: Vite would read "/" as a file to bundle -->
+    <link rel="canonical" href="/" vite-ignore />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Baza imion" />
+    <meta
+      property="og:title"
+      content="Baza imion – ranking imion w Polsce z rejestru PESEL"
+    />
+    <meta
+      property="og:description"
+      content="Ile osób nosi dane imię i jak często nadawano je dzieciom od 2000 roku."
+    />
+    <meta name="twitter:card" content="summary" />
+    <!-- /seo -->
   </head>
   <body>
-    <div id="root"></div>
+    <!-- What crawlers and visitors see before the app starts; React replaces it. -->
+    <div id="root">
+      <!-- page -->
+      <main class="mx-auto flex max-w-3xl flex-col gap-4 p-6">
+        <h1 class="text-2xl font-semibold tracking-tight">Baza imion</h1>
+        <p>
+          Wyszukiwarka i ranking imion nadanych w Polsce, na podstawie danych z
+          rejestru PESEL udostępnianych przez dane.gov.pl: imiona wszystkich
+          żyjących osób i imiona nadane noworodkom od 2000 roku.
+        </p>
+        <p class="text-muted-foreground">Wczytuję listę imion…</p>
+      </main>
+      <!-- /page -->
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

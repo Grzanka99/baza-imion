@@ -1,3 +1,5 @@
+export { displayName, plural } from "@baza-imion/shared"
+
 const numberFormat = new Intl.NumberFormat("pl-PL")
 const percentFormat = new Intl.NumberFormat("pl-PL", {
   style: "percent",
@@ -25,26 +27,4 @@ export function formatPercent(value: number) {
     return `<${percentFormat.format(0.0001)}`
   }
   return percentFormat.format(value)
-}
-
-/** Picks the Polish plural form: 1 imię, 2 imiona, 5 imion. */
-export function plural(count: number, one: string, few: string, many: string) {
-  const lastTwo = count % 100
-  const last = count % 10
-  if (count === 1) {
-    return one
-  }
-  if (last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14)) {
-    return few
-  }
-  return many
-}
-
-/** The source spells names in capitals: "ANNA MARIA" becomes "Anna Maria". */
-export function displayName(name: string) {
-  return name
-    .toLocaleLowerCase("pl")
-    .replace(/(^|[\s'-])(\p{L})/gu, (_, before: string, letter: string) => {
-      return before + letter.toLocaleUpperCase("pl")
-    })
 }

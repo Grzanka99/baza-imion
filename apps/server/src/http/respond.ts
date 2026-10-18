@@ -26,7 +26,11 @@ export function api<T>(handler: (params: URLSearchParams) => Promise<T>) {
     try {
       const params = new URL(request.url).searchParams
       return Response.json(await handler(params), {
-        headers: { "Cache-Control": cacheControl(params) },
+        headers: {
+          "Cache-Control": cacheControl(params),
+          // Crawlers may fetch it to render the app, but not list it.
+          "X-Robots-Tag": "noindex",
+        },
       })
     } catch (error) {
       if (error instanceof BadRequest) {
