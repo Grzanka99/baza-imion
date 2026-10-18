@@ -6,12 +6,14 @@ export const ANALYTICS = import.meta.env.PROD && !!WEBSITE_ID
 
 type EventData = Record<string, string>
 
-const queue: [event: string, data?: EventData][] = []
 const settling = new Map<string, ReturnType<typeof setTimeout>>()
 // Names the server has answered with; anything else, e.g. text from the
-// URL, is never sent. Events for a name not yet confirmed wait for it.
+// URL, is never sent.
 const knownNames = new Set<string>()
-const waiting = new Map<string, (() => void)[]>()
+// Events waiting for the script, or for the server to confirm their name.
+// A repeat of a name event replaces the one still waiting.
+const pending = new Map<string, { name?: string; send: () => void }>()
+let nextKey = 0
 
 export function loadAnalytics() {
   if (!ANALYTICS || !WEBSITE_ID) {
@@ -24,23 +26,30 @@ export function loadAnalytics() {
   // The query holds filters and search text; the hash is anyone's to edit.
   script.dataset.excludeSearch = "true"
   script.dataset.excludeHash = "true"
-  script.addEventListener("load", () => {
-    for (const [event, data] of queue.splice(0)) {
-      window.umami?.track(event, data)
-    }
-  })
+  script.addEventListener("load", flush)
   document.head.append(script)
+}
+
+function flush() {
+  if (!window.umami) {
+    return
+  }
+  for (const [key, event] of pending) {
+    if (event.name === undefined || knownNames.has(event.name)) {
+      pending.delete(key)
+      event.send()
+    }
+  }
 }
 
 export function track(event: string, data?: EventData) {
   if (!ANALYTICS) {
     return
   }
-  if (window.umami) {
-    window.umami.track(event, data)
-  } else {
-    queue.push([event, data])
-  }
+  pending.set(String(nextKey++), {
+    send: () => window.umami?.track(event, data),
+  })
+  flush()
 }
 
 // The same form the server gives names in.
@@ -54,21 +63,11 @@ export function trackName(event: string, name: string, wanted = () => true) {
   const confirmed = canonical(name)
   function send() {
     if (wanted()) {
-      track(event, { name: confirmed })
+      window.umami?.track(event, { name: confirmed })
     }
   }
-  if (knownNames.has(confirmed)) {
-    send()
-  } else {
-    waiting.set(confirmed, [...(waiting.get(confirmed) ?? []), send])
-  }
-}
-
-function learn(name: string) {
-  const confirmed = canonical(name)
-  knownNames.add(confirmed)
-  waiting.get(confirmed)?.forEach((send) => send())
-  waiting.delete(confirmed)
+  pending.set(`${event}:${confirmed}`, { name: confirmed, send })
+  flush()
 }
 
 /** Records the names in an API answer as safe to send. */
@@ -78,16 +77,16 @@ export function learnNames(answer: unknown) {
   }
   const { name, rows } = answer as { name?: unknown; rows?: unknown }
   if (typeof name === "string") {
-    learn(name)
+    knownNames.add(canonical(name))
   }
-  if (!Array.isArray(rows)) {
-    return
-  }
-  for (const row of rows) {
-    if (typeof row?.name === "string") {
-      learn(row.name)
+  if (Array.isArray(rows)) {
+    for (const row of rows) {
+      if (typeof row?.name === "string") {
+        knownNames.add(canonical(row.name))
+      }
     }
   }
+  flush()
 }
 
 /** Runs `report` once `key` has gone `ms` without another call or a cancel. */
