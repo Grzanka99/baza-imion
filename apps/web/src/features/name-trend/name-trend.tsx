@@ -32,7 +32,7 @@ interface NameTrendProps {
   name: string | null
   onClose: () => void
   favorite: boolean
-  onToggleFavorite: () => void
+  onToggleFavorite: (name: string) => void
 }
 
 /** The sheet that opens for one name: its counts year by year, as a chart and a table. */
@@ -47,28 +47,49 @@ export function NameTrend({
     name && trendUrl(dataset, name)
   )
   let trend = data
-  if (loading || error) trend = undefined
+  if (loading || error) {
+    trend = undefined
+  }
   const shown = trend?.name
 
   // Reported once the server has confirmed the name, not on the click.
   useEffect(() => {
-    if (name && shown) trackName("trend-opened", shown)
+    if (name && shown) {
+      trackName("trend-opened", shown)
+    }
   }, [name, shown])
 
   const totals = trend?.totals ?? { M: 0, K: 0 }
   const sexes = SEXES.filter((sex) => totals[sex] > 0)
 
   let description = error ?? "Pobieram dane…"
-  if (trend) description = headline(dataset, trend, sexes)
+  if (trend) {
+    description = headline(dataset, trend, sexes)
+  }
+
+  function handleOnOpenChange(open: boolean) {
+    if (!open) {
+      onClose()
+    }
+  }
+
+  function handleOnToggleFavorite() {
+    if (name) {
+      onToggleFavorite(name)
+    }
+  }
 
   return (
-    <Sheet open={name !== null} onOpenChange={(open) => !open && onClose()}>
+    <Sheet open={name !== null} onOpenChange={handleOnOpenChange}>
       <SheetContent className="data-[side=right]:sm:max-w-lg">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-1 pr-8 text-xl">
             {displayName(name ?? trend?.name ?? "")}
             {name && (
-              <FavoriteButton active={favorite} onToggle={onToggleFavorite} />
+              <FavoriteButton
+                active={favorite}
+                onToggle={handleOnToggleFavorite}
+              />
             )}
           </SheetTitle>
           <SheetDescription>{description}</SheetDescription>

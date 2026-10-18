@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { type ChangeEvent, useEffect, useRef, useState } from "react"
 import { Search, X } from "lucide-react"
 
 import { Input } from "@/components/ui/input"
@@ -31,12 +31,16 @@ export function SearchInput({
     []
   )
 
-  function change(value: string) {
+  function handleOnChange(event: ChangeEvent<HTMLInputElement>) {
+    const value = event.target.value
     setText(value)
     clearTimeout(timer.current)
     timer.current = setTimeout(() => onSearch(value.trim()), DEBOUNCE_MS)
-    if (value.trim()) settle("search", TRACK_AFTER_MS, () => track("search"))
-    else cancelSettle("search")
+    if (value.trim()) {
+      settle("search", TRACK_AFTER_MS, () => track("search"))
+    } else {
+      cancelSettle("search")
+    }
   }
 
   function clear() {
@@ -58,7 +62,7 @@ export function SearchInput({
         placeholder="Szukaj imienia…"
         className="px-8 [&::-webkit-search-cancel-button]:appearance-none"
         value={text}
-        onChange={(event) => change(event.target.value)}
+        onChange={handleOnChange}
       />
       {text !== "" && (
         <button

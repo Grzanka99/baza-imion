@@ -5,7 +5,9 @@ const TIMING_WAIT_MS = 5000
 const endpointOf = (url: string) => new URL(url, window.location.href).pathname
 
 export function reportLocalAnswer(url: string) {
-  if (!ANALYTICS) return
+  if (!ANALYTICS) {
+    return
+  }
   track("api-answer", { source: "local", endpoint: endpointOf(url) })
 }
 
@@ -14,14 +16,19 @@ export function reportLocalAnswer(url: string) {
  * report which cache answered it, as far as the browser can tell.
  */
 export function watchAnswer(url: string) {
-  if (!ANALYTICS) return () => {}
+  if (!ANALYTICS) {
+    return () => {}
+  }
   const timing = nextTiming(url)
   return (response: Response) => {
     const cdn = response.headers.get("x-vercel-cache")
     void timing.then((entry) => {
       let source = "server"
-      if (entry?.transferSize === 0) source = "browser"
-      else if (cdn === "HIT" || cdn === "STALE") source = "cdn"
+      if (entry?.transferSize === 0) {
+        source = "browser"
+      } else if (cdn === "HIT" || cdn === "STALE") {
+        source = "cdn"
+      }
       track("api-answer", { source, endpoint: endpointOf(url) })
     })
   }
@@ -36,7 +43,9 @@ function nextTiming(url: string) {
       const entry = list
         .getEntriesByName(name)
         .find((candidate) => candidate.startTime >= after)
-      if (entry) done(entry as PerformanceResourceTiming)
+      if (entry) {
+        done(entry as PerformanceResourceTiming)
+      }
     })
     const timer = setTimeout(done, TIMING_WAIT_MS)
     function done(entry?: PerformanceResourceTiming) {

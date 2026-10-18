@@ -28,7 +28,9 @@ function subscribe(onChange: () => void) {
 function parse(stored: string): string[] {
   try {
     const value: unknown = JSON.parse(stored)
-    if (!Array.isArray(value)) return []
+    if (!Array.isArray(value)) {
+      return []
+    }
     return value.filter((name) => typeof name === "string")
   } catch {
     return []
@@ -43,7 +45,9 @@ export function useFavorites() {
 
   const toggle = useCallback((name: string) => {
     const current = new Set(parse(read()))
-    if (!current.delete(name)) current.add(name)
+    if (!current.delete(name)) {
+      current.add(name)
+    }
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify([...current]))
     } catch {
@@ -57,7 +61,9 @@ export function useFavorites() {
     }
     // Checked again then, as another tab may have removed it.
     settle(key, SETTLE_MS, () => {
-      if (parse(read()).includes(name)) trackName("favorite-added", name)
+      if (parse(read()).includes(name)) {
+        trackName("favorite-added", name)
+      }
     })
   }, [])
 

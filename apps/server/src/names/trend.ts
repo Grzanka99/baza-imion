@@ -21,13 +21,17 @@ export async function queryTrend(
   loaded.forEach((slices, index) => {
     for (const slice of slices) {
       slice.forEach((rowName, sex, count) => {
-        if (rowName !== name) return
+        if (rowName !== name) {
+          return
+        }
         points[index][sex] += count
         totals[sex] += count
       })
     }
   })
-  if (totals.M + totals.K === 0) return undefined
+  if (totals.M + totals.K === 0) {
+    return undefined
+  }
 
   return {
     name,

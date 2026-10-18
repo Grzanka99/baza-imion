@@ -29,10 +29,14 @@ const fetchedAt = (stored: string) =>
 /** The answer kept for `url`, however old; see `isFresh`. */
 export function recall(url: string): Answer | undefined {
   const held = memory.get(url)
-  if (held) return held
+  if (held) {
+    return held
+  }
   try {
     const stored = localStorage.getItem(PREFIX + url)
-    if (!stored) return undefined
+    if (!stored) {
+      return undefined
+    }
     const answer = {
       at: fetchedAt(stored),
       data: JSON.parse(stored.slice(stored.indexOf("|") + 1)),

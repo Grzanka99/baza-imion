@@ -23,8 +23,12 @@ export function ResultSummary({
   onReset,
 }: ResultSummaryProps) {
   let text = "Pobieram dane z dane.gov.pl, to może chwilę potrwać…"
-  if (data) text = summary(dataset, data)
-  if (error !== undefined) text = error
+  if (data) {
+    text = summary(dataset, data)
+  }
+  if (error !== undefined) {
+    text = error
+  }
 
   return (
     <div className="flex min-h-7 shrink-0 items-center justify-between gap-3">
@@ -44,8 +48,12 @@ export function ResultSummary({
 function summary(dataset: Dataset, data: NamesResponse) {
   const names = `${formatNumber(data.matchedNames)} ${plural(data.matchedNames, "imię", "imiona", "imion")}`
   const people = `${formatNumber(data.matchedCount)} ${plural(data.matchedCount, ...PEOPLE_NOUN[dataset])}`
-  if (data.matchedNames === data.scopeNames) return `${names} · ${people}`
+  if (data.matchedNames === data.scopeNames) {
+    return `${names} · ${people}`
+  }
   let share = 0
-  if (data.scopeCount) share = data.matchedCount / data.scopeCount
+  if (data.scopeCount) {
+    share = data.matchedCount / data.scopeCount
+  }
   return `${names} · ${people} · ${formatPercent(share)} wszystkich`
 }

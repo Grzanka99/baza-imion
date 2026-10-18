@@ -14,6 +14,13 @@ export function SexToggle({
   className: string
   onChange: (sex: SexFilter) => void
 }) {
+  function handleOnValueChange(value: string) {
+    if (value) {
+      track("sex-changed", { sex: value })
+      onChange(value as SexFilter)
+    }
+  }
+
   return (
     <ToggleGroup
       type="single"
@@ -21,11 +28,7 @@ export function SexToggle({
       aria-label="Płeć"
       className={className}
       value={sex}
-      onValueChange={(value) => {
-        if (!value) return
-        track("sex-changed", { sex: value })
-        onChange(value as SexFilter)
-      }}
+      onValueChange={handleOnValueChange}
     >
       <ToggleGroupItem value="all" className="flex-1 sm:flex-none">
         Wszyscy

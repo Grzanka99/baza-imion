@@ -29,8 +29,12 @@ export const handleNames = api((params) => {
 
 export const handleTrend = api(async (params) => {
   const name = params.get("name")?.trim().toUpperCase()
-  if (!name || name.length > 100) throw new BadRequest("name is required")
+  if (!name || name.length > 100) {
+    throw new BadRequest("name is required")
+  }
   const trend = await queryTrend(dataset(params), name)
-  if (!trend) throw new NotFound("Nie ma takiego imienia")
+  if (!trend) {
+    throw new NotFound("Nie ma takiego imienia")
+  }
   return trend
 })

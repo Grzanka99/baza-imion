@@ -52,15 +52,18 @@ export function NamesTable({
     container.current
       ?.querySelector("[data-slot=table-container]")
       ?.scrollTo({ top: 0 })
-    if (window.scrollY > 0) onNewRows()
+    if (window.scrollY > 0) {
+      onNewRows()
+    }
   }, [rows, onNewRows])
 
   const sortButton = (key: SortKey, label: string) => (
     <SortButton
+      column={key}
       label={label}
       sorted={sort === key}
       order={order}
-      onSort={() => onSort(key)}
+      onSort={onSort}
     />
   )
 
@@ -118,8 +121,8 @@ export function NamesTable({
               dataset={dataset}
               row={row}
               favorite={isFavorite(row.name)}
-              onSelect={() => onSelect(row.name)}
-              onToggleFavorite={() => onToggleFavorite(row.name)}
+              onSelect={onSelect}
+              onToggleFavorite={onToggleFavorite}
             />
           ))}
         </TableBody>

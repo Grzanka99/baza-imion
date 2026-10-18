@@ -34,7 +34,9 @@ export function integer(
 ) {
   const raw = params.get(key)
   let value = fallback
-  if (raw !== null) value = Number(raw)
+  if (raw !== null) {
+    value = Number(raw)
+  }
   if (!Number.isInteger(value) || value < min || value > max) {
     throw new BadRequest(`${key} must be an integer from ${min} to ${max}`)
   }
@@ -51,16 +53,22 @@ export function yearFilter(
 ): YearFilter {
   const years = DATASET_YEARS[selected]
   const raw = params.get("year")
-  if (raw === null) return defaultYear(selected)
+  if (raw === null) {
+    return defaultYear(selected)
+  }
   // Yearly population snapshots count the same people, so they are not summed.
-  if (raw === "all" && selected === "children") return "all"
+  if (raw === "all" && selected === "children") {
+    return "all"
+  }
   return integer(params, "year", years[0], years[0], years[years.length - 1])
 }
 
 /** The `names` parameter: a comma-separated list; present but empty means none. */
 export function onlyNames(params: URLSearchParams) {
   const raw = params.get("names")
-  if (raw === null) return undefined
+  if (raw === null) {
+    return undefined
+  }
   const names = raw
     .split(",")
     .map((name) => name.trim().toUpperCase())

@@ -30,7 +30,9 @@ async function loadFile(resourceId: number, sex: Sex): Promise<Slice> {
   return {
     fetchedAt,
     forEach: (visit) => {
-      for (const [name, count] of value) visit(name, sex, count)
+      for (const [name, count] of value) {
+        visit(name, sex, count)
+      }
     },
   }
 }
@@ -44,7 +46,9 @@ export async function loadYear(
   const files = YEARLY_LISTS[dataset][year]
   if (files) {
     let sexes: Sex[] = ["M", "K"]
-    if (sex !== "all") sexes = [sex]
+    if (sex !== "all") {
+      sexes = [sex]
+    }
     return Promise.all(sexes.map((each) => loadFile(files[each], each)))
   }
 
@@ -65,7 +69,9 @@ export async function loadYear(
     {
       fetchedAt,
       forEach: (visit) => {
-        for (const [name, rowSex, count] of value) visit(name, rowSex, count)
+        for (const [name, rowSex, count] of value) {
+          visit(name, rowSex, count)
+        }
       },
     },
   ]

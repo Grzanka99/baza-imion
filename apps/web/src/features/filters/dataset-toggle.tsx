@@ -9,17 +9,20 @@ export function DatasetToggle({
   dataset: Dataset
   onChange: (dataset: Dataset) => void
 }) {
+  function handleOnValueChange(value: string) {
+    if (value) {
+      track("dataset-changed", { dataset: value })
+      onChange(value as Dataset)
+    }
+  }
+
   return (
     <ToggleGroup
       type="single"
       variant="outline"
       aria-label="Zbiór danych"
       value={dataset}
-      onValueChange={(value) => {
-        if (!value) return
-        track("dataset-changed", { dataset: value })
-        onChange(value as Dataset)
-      }}
+      onValueChange={handleOnValueChange}
     >
       <ToggleGroupItem value="population">Cała populacja</ToggleGroupItem>
       <ToggleGroupItem value="children">Noworodki</ToggleGroupItem>

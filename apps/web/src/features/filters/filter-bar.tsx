@@ -8,7 +8,12 @@ import { SearchInput } from "@/features/filters/search-input"
 import { SexToggle } from "@/features/filters/sex-toggle"
 import { YearSelect } from "@/features/filters/year-select"
 import type { View } from "@/hooks/use-view"
-import { defaultYear } from "@baza-imion/shared"
+import {
+  defaultYear,
+  type Dataset,
+  type SexFilter,
+  type YearFilter,
+} from "@baza-imion/shared"
 
 interface FilterBarProps {
   /** From `usePhoneBar`: the element it measures, and whether it is folded. */
@@ -39,12 +44,32 @@ export function FilterBar({
 }: FilterBarProps) {
   const { dataset, search, sex, year } = view
 
+  function handleOnSexChange(next: SexFilter) {
+    update({ sex: next, page: 1 })
+  }
+
+  function handleOnDatasetChange(next: Dataset) {
+    update({ dataset: next, year: defaultYear(next), page: 1, name: null })
+  }
+
+  function handleOnSearch(query: string) {
+    update({ search: query, page: 1 })
+  }
+
+  function handleOnYearChange(next: YearFilter) {
+    update({ year: next, page: 1 })
+  }
+
+  function handleOnFavoritesToggle() {
+    update({ favorites: !view.favorites, page: 1 })
+  }
+
   const sexToggle = (className: string) => (
     <SexToggle
       dataset={dataset}
       sex={sex}
       className={className}
-      onChange={(next) => update({ sex: next, page: 1 })}
+      onChange={handleOnSexChange}
     />
   )
 
@@ -59,17 +84,7 @@ export function FilterBar({
           <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
             Baza imion
           </h1>
-          <DatasetToggle
-            dataset={dataset}
-            onChange={(next) =>
-              update({
-                dataset: next,
-                year: defaultYear(next),
-                page: 1,
-                name: null,
-              })
-            }
-          />
+          <DatasetToggle dataset={dataset} onChange={handleOnDatasetChange} />
         </header>
       </Collapse>
 
@@ -78,13 +93,13 @@ export function FilterBar({
           <SearchInput
             key={searchKey}
             initialValue={search}
-            onSearch={(query) => update({ search: query, page: 1 })}
+            onSearch={handleOnSearch}
           />
           {sexToggle("hidden sm:flex")}
           <YearSelect
             dataset={dataset}
             year={year}
-            onChange={(next) => update({ year: next, page: 1 })}
+            onChange={handleOnYearChange}
           />
           <RandomNameButton
             dataset={dataset}
@@ -94,7 +109,7 @@ export function FilterBar({
           />
           <OnlyFavoritesButton
             active={view.favorites}
-            onToggle={() => update({ favorites: !view.favorites, page: 1 })}
+            onToggle={handleOnFavoritesToggle}
           />
         </div>
       </Collapse>
