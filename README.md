@@ -46,7 +46,10 @@ jako funkcje Node.js (wywołują zbudowany `apps/server`).
 1. Zaimportuj repozytorium w Vercel.
 2. W ustawieniach projektu dodaj zmienne środowiskowe `TURSO_URL`
    i `TURSO_TOKEN` (Production i Preview).
-3. Wdróż.
+3. Opcjonalnie: statystyki Umami (bez ciasteczek) – zmienna
+   `VITE_UMAMI_WEBSITE_ID` tylko dla Production. Bez niej statystyki są
+   wyłączone.
+4. Wdróż.
 
 Bez Turso każda nowo uruchomiona instancja funkcji pobierałaby dane
 z dane.gov.pl od zera.

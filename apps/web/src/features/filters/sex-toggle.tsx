@@ -1,4 +1,5 @@
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { track } from "@/lib/analytics"
 import { SEX_LABEL } from "@/lib/labels"
 import type { Dataset, SexFilter } from "@baza-imion/shared"
 
@@ -21,7 +22,9 @@ export function SexToggle({
       className={className}
       value={sex}
       onValueChange={(value) => {
-        if (value) onChange(value as SexFilter)
+        if (!value) return
+        track("sex-changed", { sex: value })
+        onChange(value as SexFilter)
       }}
     >
       <ToggleGroupItem value="all" className="flex-1 sm:flex-none">

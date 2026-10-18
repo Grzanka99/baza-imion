@@ -1,4 +1,5 @@
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { track } from "@/lib/analytics"
 import type { Dataset } from "@baza-imion/shared"
 
 export function DatasetToggle({
@@ -15,7 +16,9 @@ export function DatasetToggle({
       aria-label="Zbiór danych"
       value={dataset}
       onValueChange={(value) => {
-        if (value) onChange(value as Dataset)
+        if (!value) return
+        track("dataset-changed", { dataset: value })
+        onChange(value as Dataset)
       }}
     >
       <ToggleGroupItem value="population">Cała populacja</ToggleGroupItem>

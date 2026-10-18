@@ -1,7 +1,10 @@
 import { useCallback, useMemo, useSyncExternalStore } from "react"
 
+import { cancelSettle, settle, trackName } from "@/lib/analytics"
+
 const STORAGE_KEY = "favorite-names"
 const CHANGE_EVENT = "favoriteschange"
+const SETTLE_MS = 2000
 
 function read() {
   try {
@@ -47,6 +50,15 @@ export function useFavorites() {
       return
     }
     window.dispatchEvent(new Event(CHANGE_EVENT))
+    const key = `favorite:${name}`
+    if (!current.has(name)) {
+      cancelSettle(key)
+      return
+    }
+    // Checked again then, as another tab may have removed it.
+    settle(key, SETTLE_MS, () => {
+      if (parse(read()).includes(name)) trackName("favorite-added", name)
+    })
   }, [])
 
   return { names, has: (name: string) => set.has(name), toggle }

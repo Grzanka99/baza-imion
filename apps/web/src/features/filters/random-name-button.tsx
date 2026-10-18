@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Dices } from "lucide-react"
 
+import { watchAnswer } from "@/api-client/answer-source"
 import { namesUrl } from "@/api-client/urls"
 import { Button } from "@/components/ui/button"
 import type {
@@ -27,12 +28,13 @@ export function RandomNameButton({
   async function draw() {
     setDrawing(true)
     try {
-      const response = await fetch(
-        namesUrl({ dataset, year, sex, random: true }),
-        { cache: "no-store" }
-      )
+      const url = namesUrl({ dataset, year, sex, random: true })
+      const report = watchAnswer(url)
+      const response = await fetch(url, { cache: "no-store" })
       const drawn: NamesResponse = await response.json()
-      if (response.ok && drawn.rows[0]) onDraw(drawn.rows[0].name)
+      if (!response.ok || !drawn.rows[0]) return
+      report(response)
+      onDraw(drawn.rows[0].name)
     } catch {
       // The search stays as it is; the button can simply be pressed again.
     } finally {
