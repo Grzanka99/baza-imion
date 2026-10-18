@@ -9,8 +9,9 @@ type EventData = Record<string, string>
 const queue: [event: string, data?: EventData][] = []
 const settling = new Map<string, ReturnType<typeof setTimeout>>()
 // Names the server has answered with; anything else, e.g. text from the
-// URL, is never sent.
+// URL, is never sent. Events for a name not yet confirmed wait for it.
 const knownNames = new Set<string>()
+const waiting = new Map<string, (() => void)[]>()
 
 export function loadAnalytics() {
   if (!ANALYTICS || !WEBSITE_ID) {
@@ -20,8 +21,9 @@ export function loadAnalytics() {
   script.defer = true
   script.src = SCRIPT_URL
   script.dataset.websiteId = WEBSITE_ID
-  // The query holds filters and search text.
+  // The query holds filters and search text; the hash is anyone's to edit.
   script.dataset.excludeSearch = "true"
+  script.dataset.excludeHash = "true"
   script.addEventListener("load", () => {
     for (const [event, data] of queue.splice(0)) {
       window.umami?.track(event, data)
@@ -41,10 +43,32 @@ export function track(event: string, data?: EventData) {
   }
 }
 
-export function trackName(event: string, name: string) {
-  if (ANALYTICS && knownNames.has(name)) {
-    track(event, { name })
+// The same form the server gives names in.
+const canonical = (name: string) => name.trim().toUpperCase()
+
+/** Sends `event` with `name` once the server has confirmed the name, if `wanted` still agrees then. */
+export function trackName(event: string, name: string, wanted = () => true) {
+  if (!ANALYTICS) {
+    return
   }
+  const confirmed = canonical(name)
+  function send() {
+    if (wanted()) {
+      track(event, { name: confirmed })
+    }
+  }
+  if (knownNames.has(confirmed)) {
+    send()
+  } else {
+    waiting.set(confirmed, [...(waiting.get(confirmed) ?? []), send])
+  }
+}
+
+function learn(name: string) {
+  const confirmed = canonical(name)
+  knownNames.add(confirmed)
+  waiting.get(confirmed)?.forEach((send) => send())
+  waiting.delete(confirmed)
 }
 
 /** Records the names in an API answer as safe to send. */
@@ -54,14 +78,14 @@ export function learnNames(answer: unknown) {
   }
   const { name, rows } = answer as { name?: unknown; rows?: unknown }
   if (typeof name === "string") {
-    knownNames.add(name)
+    learn(name)
   }
   if (!Array.isArray(rows)) {
     return
   }
   for (const row of rows) {
     if (typeof row?.name === "string") {
-      knownNames.add(row.name)
+      learn(row.name)
     }
   }
 }

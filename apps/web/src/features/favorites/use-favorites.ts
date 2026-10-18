@@ -59,11 +59,12 @@ export function useFavorites() {
       cancelSettle(key)
       return
     }
-    // Checked again then, as another tab may have removed it.
+    // Checked again when sent, as another tab may have removed it.
+    function stillFavorite() {
+      return parse(read()).includes(name)
+    }
     settle(key, SETTLE_MS, () => {
-      if (parse(read()).includes(name)) {
-        trackName("favorite-added", name)
-      }
+      trackName("favorite-added", name, stillFavorite)
     })
   }, [])
 
