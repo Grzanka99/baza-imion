@@ -1,4 +1,5 @@
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { track } from "@/lib/analytics"
 import type { Dataset } from "@baza-imion/shared"
 
 export function DatasetToggle({
@@ -10,6 +11,7 @@ export function DatasetToggle({
 }) {
   function handleOnValueChange(value: string) {
     if (value) {
+      track("dataset-changed", { dataset: value })
       onChange(value as Dataset)
     }
   }

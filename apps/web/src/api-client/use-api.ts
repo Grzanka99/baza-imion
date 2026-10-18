@@ -6,6 +6,8 @@ import {
   remember,
   type Answer,
 } from "@/api-client/answer-cache"
+import { reportLocalAnswer, watchAnswer } from "@/api-client/answer-source"
+import { learnNames } from "@/lib/analytics"
 
 const FALLBACK_ERROR = "Nie udało się pobrać danych"
 
@@ -28,11 +30,16 @@ export function useApi<T>(url: string | null) {
       return
     }
     const known = recall(url)
+    if (known) {
+      learnNames(known.data)
+    }
     if (known && isFresh(known)) {
+      reportLocalAnswer(url)
       return
     }
 
     const controller = new AbortController()
+    const report = watchAnswer(url)
     fetch(url, { signal: controller.signal })
       .then(async (response) => {
         const body = await response.json().catch(() => null)
@@ -42,6 +49,8 @@ export function useApi<T>(url: string | null) {
         if (controller.signal.aborted) {
           return
         }
+        learnNames(body)
+        report(response)
         remember(url, body)
         setSettled({ url, data: body as T })
       })

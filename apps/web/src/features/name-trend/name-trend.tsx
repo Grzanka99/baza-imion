@@ -1,3 +1,5 @@
+import { useEffect } from "react"
+
 import { trendUrl } from "@/api-client/urls"
 import { useApi } from "@/api-client/use-api"
 import {
@@ -11,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { FavoriteButton } from "@/features/favorites/favorite-button"
 import { TrendChart } from "@/features/name-trend/trend-chart"
 import { TrendTable } from "@/features/name-trend/trend-table"
+import { trackName } from "@/lib/analytics"
 import { displayName, formatCount, formatNumber } from "@/lib/format"
 import { SEX_LABEL } from "@/lib/labels"
 import type { Dataset, Sex, TrendResponse } from "@baza-imion/shared"
@@ -47,6 +50,15 @@ export function NameTrend({
   if (loading || error) {
     trend = undefined
   }
+  const shown = trend?.name
+
+  // Reported once the server has confirmed the name, not on the click.
+  useEffect(() => {
+    if (name && shown) {
+      trackName("trend-opened", shown)
+    }
+  }, [name, shown])
+
   const totals = trend?.totals ?? { M: 0, K: 0 }
   const sexes = SEXES.filter((sex) => totals[sex] > 0)
 

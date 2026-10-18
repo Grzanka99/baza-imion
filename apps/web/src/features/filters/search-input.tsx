@@ -2,8 +2,10 @@ import { type ChangeEvent, useEffect, useRef, useState } from "react"
 import { Search, X } from "lucide-react"
 
 import { Input } from "@/components/ui/input"
+import { cancelSettle, settle, track } from "@/lib/analytics"
 
 const DEBOUNCE_MS = 250
+const TRACK_AFTER_MS = 1000
 
 /**
  * Keeps the typed text in its own state, so a keystroke re-renders only this
@@ -20,18 +22,31 @@ export function SearchInput({
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined)
   const input = useRef<HTMLInputElement>(null)
 
-  useEffect(() => () => clearTimeout(timer.current), [])
+  // Resetting the filters remounts the box; a search still pending is dropped.
+  useEffect(
+    () => () => {
+      clearTimeout(timer.current)
+      cancelSettle("search")
+    },
+    []
+  )
 
   function handleOnChange(event: ChangeEvent<HTMLInputElement>) {
     const value = event.target.value
     setText(value)
     clearTimeout(timer.current)
     timer.current = setTimeout(() => onSearch(value.trim()), DEBOUNCE_MS)
+    if (value.trim()) {
+      settle("search", TRACK_AFTER_MS, () => track("search"))
+    } else {
+      cancelSettle("search")
+    }
   }
 
   function clear() {
     setText("")
     clearTimeout(timer.current)
+    cancelSettle("search")
     onSearch("")
     input.current?.focus()
   }
