@@ -4,7 +4,12 @@ import { FavoriteButton } from "@/features/favorites/favorite-button"
 import { displayName, formatNumber, formatPercent } from "@/lib/format"
 import type { MouseEvent } from "react"
 
-import { namePath, type Dataset, type NameRow } from "@baza-imion/shared"
+import {
+  DEFAULT_DATASET,
+  namePath,
+  type Dataset,
+  type NameRow,
+} from "@baza-imion/shared"
 
 export function NamesTableRow({
   dataset,
@@ -32,6 +37,12 @@ export function NamesTableRow({
     event.preventDefault()
   }
 
+  // A page opened in a new tab shows the dataset of this list.
+  let href = namePath(row.name)
+  if (dataset !== DEFAULT_DATASET) {
+    href += `?dataset=${dataset}`
+  }
+
   function handleOnToggleFavorite() {
     onToggleFavorite(row.name)
   }
@@ -44,7 +55,7 @@ export function NamesTableRow({
       <TableCell>
         {/* Keyboard access to the row, and the page search engines follow. */}
         <a
-          href={namePath(row.name)}
+          href={href}
           className="cursor-pointer rounded-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring"
           onClick={handleOnLinkClick}
         >

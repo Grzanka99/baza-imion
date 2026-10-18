@@ -7,7 +7,13 @@ export const NAME_PATH = "/imie/"
 export const SITE_NAME = "Baza imion"
 
 export function namePath(name: string) {
-  return NAME_PATH + encodeURIComponent(name.toLocaleLowerCase("pl"))
+  let slug = name.toLocaleLowerCase("pl")
+  // Lowercase İ (ALİ) is i with a dot above, which uppercases to I and the
+  // dot; such names keep their capitals, so nameFromPath finds them again.
+  if (slug.toUpperCase() !== name) {
+    slug = name
+  }
+  return NAME_PATH + encodeURIComponent(slug)
 }
 
 /** The name, in the source's capitals, whose page `pathname` is; null for any other path. */
