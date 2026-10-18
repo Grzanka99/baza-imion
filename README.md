@@ -37,6 +37,10 @@ vp run start
 
 Formatowanie, lint i typy sprawdza `vp check`.
 
+Hak pre-commit (`.vite-hooks/pre-commit`, instalowany przez `vp install`)
+odrzuca dodane do commita pliki większe niż 5000 tokenów (20 000 bajtów).
+Pomija pliki oznaczone `linguist-generated` w `.gitattributes`.
+
 ## Wdrożenie na Vercel
 
 Repozytorium jest gotowe do importu w Vercel (`vercel.json`): interfejs jest
