@@ -13,7 +13,7 @@ import { formatNumber, table } from "./html.ts"
 /** What a dataset says about one name: its trend, and its row in the default year. */
 export interface Figures {
   trend: TrendResponse
-  /** Missing when the name is absent from the latest population snapshot. */
+  /** Missing when the name is absent from the latest population snapshot; births always have one. */
   row: NameRow | undefined
 }
 
@@ -53,13 +53,16 @@ export function populationSentence(shown: string, row: NameRow) {
   )
 }
 
-export function childrenSentence(shown: string, figures: Figures) {
-  const count = figures.row?.count ?? 0
-  let text = `W latach ${CHILDREN_SPAN} imię ${shown} nadano ${formatNumber(count)} ${plural(count, "dziecku", "dzieciom", "dzieciom")}`
-  if (figures.row) {
-    text += `${sexSplit("children", figures.row)}. Zajmuje ${figures.row.rank}. miejsce wśród imion nadanych w tym czasie`
-  }
-  const best = figures.trend.points.reduce((top, point) => {
+export function childrenSentence(
+  shown: string,
+  row: NameRow,
+  trend: TrendResponse
+) {
+  const given = `${formatNumber(row.count)} ${plural(row.count, "dziecku", "dzieciom", "dzieciom")}`
+  const text =
+    `W latach ${CHILDREN_SPAN} imię ${shown} nadano ${given}${sexSplit("children", row)}. ` +
+    `Zajmuje ${row.rank}. miejsce wśród imion nadanych w tym czasie`
+  const best = trend.points.reduce((top, point) => {
     if (point.M + point.K > top.M + top.K) {
       return point
     }
@@ -71,22 +74,22 @@ export function childrenSentence(shown: string, figures: Figures) {
 /** Under 160 characters or so, for the search result snippet. */
 export function description(
   shown: string,
-  population: Figures | undefined,
-  children: Figures | undefined
+  population: NameRow | undefined,
+  children: NameRow | undefined
 ) {
   const parts: string[] = []
-  if (population?.row) {
+  if (population) {
     parts.push(
-      `${shown}: ${formatNumber(population.row.count)} ${plural(population.row.count, "osoba", "osoby", "osób")} w Polsce (${POPULATION_YEAR} r.), ${population.row.rank}. miejsce w rankingu imion.`
+      `${shown}: ${formatNumber(population.count)} ${plural(population.count, "osoba", "osoby", "osób")} w Polsce (${POPULATION_YEAR} r.), ${population.rank}. miejsce w rankingu imion.`
     )
   }
-  if (children?.row) {
+  if (children) {
     let subject = "je"
     if (parts.length === 0) {
       subject = `imię ${shown}`
     }
     parts.push(
-      `W latach ${CHILDREN_SPAN} nadano ${subject} ${formatNumber(children.row.count)} ${plural(children.row.count, "dziecku", "dzieciom", "dzieciom")}.`
+      `W latach ${CHILDREN_SPAN} nadano ${subject} ${formatNumber(children.count)} ${plural(children.count, "dziecku", "dzieciom", "dzieciom")}.`
     )
   }
   parts.push("Liczby rok po roku z rejestru PESEL.")

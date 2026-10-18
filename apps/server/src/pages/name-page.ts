@@ -6,7 +6,7 @@ import {
   SITE_NAME,
   type Dataset,
 } from "@baza-imion/shared"
-import { queryNames } from "../names/list.ts"
+import { loadScope } from "../names/scope.ts"
 import { queryTrend } from "../names/trend.ts"
 import { escapeHtml, headTags } from "./html.ts"
 import {
@@ -29,23 +29,14 @@ async function figures(
   dataset: Dataset,
   name: string
 ): Promise<Figures | undefined> {
-  const trend = await queryTrend(dataset, name)
+  const [trend, scope] = await Promise.all([
+    queryTrend(dataset, name),
+    loadScope(dataset, defaultYear(dataset), "all"),
+  ])
   if (!trend) {
     return undefined
   }
-  const { rows } = await queryNames({
-    dataset,
-    year: defaultYear(dataset),
-    sex: "all",
-    search: "",
-    sort: "count",
-    order: "desc",
-    page: 1,
-    perPage: 1,
-    random: false,
-    only: [name],
-  })
-  return { trend, row: rows[0] }
+  return { trend, row: scope.rows.find((row) => row.name === name) }
 }
 
 function main(content: string[]) {
@@ -82,7 +73,12 @@ export async function namePage(name: string, site: string): Promise<Page> {
     )
   }
   if (children) {
-    content.push(`<p>${escapeHtml(childrenSentence(shown, children))}</p>`)
+    // The children's ranking sums the same years as its trend, so a name
+    // given to children always has a row there.
+    const row = children.row!
+    content.push(
+      `<p>${escapeHtml(childrenSentence(shown, row, children.trend))}</p>`
+    )
   }
   if (population) {
     content.push(
@@ -110,7 +106,7 @@ export async function namePage(name: string, site: string): Promise<Page> {
     status: 200,
     head: headTags({
       title: nameTitle(found.trend.name),
-      description: description(shown, population, children),
+      description: description(shown, population?.row, children?.row),
       url: site + namePath(found.trend.name),
     }),
     body: main(content),
@@ -121,12 +117,12 @@ function missingPage(): Page {
   return {
     status: 404,
     head: headTags({
-      title: `Nie ma takiego imienia | ${SITE_NAME}`,
-      description: "W rejestrze PESEL nie ma takiego imienia.",
+      title: `Brak imienia w danych | ${SITE_NAME}`,
+      description: "Tego imienia nie ma w opublikowanych danych PESEL.",
     }),
     body: main([
-      `<h1 class="text-2xl font-semibold tracking-tight">Nie ma takiego imienia</h1>`,
-      `<p>Rejestr PESEL nie wykazuje tego imienia ani wśród żyjących osób, ani wśród imion nadanych dzieciom od 2000 roku.</p>`,
+      `<h1 class="text-2xl font-semibold tracking-tight">Brak imienia w danych</h1>`,
+      `<p>Opublikowane dane z rejestru PESEL nie wykazują tego imienia ani wśród żyjących osób, ani wśród imion nadanych dzieciom od 2000 roku. Rejestr pomija imiona bardzo rzadkie.</p>`,
     ]),
   }
 }

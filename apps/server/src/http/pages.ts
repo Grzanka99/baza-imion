@@ -36,7 +36,8 @@ function respond(body: string, status: number, type: string, cache: string) {
 export function namePageHandler(templatePath: string) {
   return async (request: Request) => {
     const template = await loadTemplate(templatePath)
-    // nameFromPath decodes the name, in case a rewrite left it encoded.
+    // Turns the rewritten path segment, encoded or not, into the registry's
+    // capitals.
     const param = new URL(request.url).searchParams.get("name") ?? ""
     const name = nameFromPath(NAME_PATH + param) ?? ""
     try {

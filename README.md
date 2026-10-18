@@ -50,10 +50,10 @@ Node.js (wywołują zbudowany `apps/server`).
 1. Zaimportuj repozytorium w Vercel.
 2. W ustawieniach projektu dodaj zmienne środowiskowe `TURSO_URL`
    i `TURSO_TOKEN` (Production i Preview).
-3. Dodaj `SITE_URL` (Production), np. `https://baza-imion.pl`. Tam wskazują
-   linki kanoniczne i mapa strony, więc wyszukiwarki nie indeksują strony
-   także pod adresem `*.vercel.app`. Bez tej zmiennej linki biorą adres
-   z zapytania.
+3. Dodaj `SITE_URL` (Production), np. `https://baza-imion.pl`. Linki
+   kanoniczne i mapa strony wskazują tę domenę jako właściwą, także na
+   stronach otwartych pod adresem `*.vercel.app`. Bez tej zmiennej linki
+   biorą adres z zapytania.
 4. Wdróż, a potem zgłoś `/sitemap.xml` w Google Search Console.
 
 Bez Turso każda nowo uruchomiona instancja funkcji pobierałaby dane
