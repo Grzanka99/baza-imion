@@ -6,9 +6,13 @@ export function parseCsv(text: string): string[][] {
   for (let i = 0; i < text.length; i++) {
     const char = text[i]
     if (quoted) {
-      if (char !== '"') field += char
-      else if (text[i + 1] === '"') field += text[i++]
-      else quoted = false
+      if (char !== '"') {
+        field += char
+      } else if (text[i + 1] === '"') {
+        field += text[i++]
+      } else {
+        quoted = false
+      }
     } else if (char === '"') {
       quoted = true
     } else if (char === ",") {
@@ -23,15 +27,21 @@ export function parseCsv(text: string): string[][] {
       field += char
     }
   }
-  if (field !== "" || row.length > 0) rows.push([...row, field])
+  if (field !== "" || row.length > 0) {
+    rows.push([...row, field])
+  }
   return rows
 }
 
 /** A whole number in a CSV cell, or NaN. */
 export function toCount(cell: string | undefined) {
-  if (!cell?.trim()) return NaN
+  if (!cell?.trim()) {
+    return NaN
+  }
   const value = Number(cell)
-  if (!Number.isInteger(value)) return NaN
+  if (!Number.isInteger(value)) {
+    return NaN
+  }
   return value
 }
 

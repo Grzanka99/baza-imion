@@ -1,0 +1,4 @@
+# Files nobody writes by hand. The pre-commit size check
+# (scripts/check-file-size.ts) skips them, and GitHub collapses their diffs.
+pnpm-lock.yaml linguist-generated
+apps/web/src/components/ui/** linguist-generated

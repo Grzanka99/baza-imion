@@ -27,13 +27,20 @@ export function usePhoneBar() {
         // landed at the very top, where a folded bar would leave a gap.
         ownScroll.current = false
         last = y
-        if (y < THRESHOLD) setCollapsed(false)
+        if (y < THRESHOLD) {
+          setCollapsed(false)
+        }
         return
       }
-      if (y < THRESHOLD) setCollapsed(false)
-      else if (y - last > THRESHOLD) setCollapsed(true)
-      else if (last - y > THRESHOLD) setCollapsed(false)
-      else return
+      if (y < THRESHOLD) {
+        setCollapsed(false)
+      } else if (y - last > THRESHOLD) {
+        setCollapsed(true)
+      } else if (last - y > THRESHOLD) {
+        setCollapsed(false)
+      } else {
+        return
+      }
       last = y
     }
     window.addEventListener("scroll", onScroll, { passive: true })
@@ -42,7 +49,9 @@ export function usePhoneBar() {
 
   useEffect(() => {
     const element = bar.current
-    if (!element) return
+    if (!element) {
+      return
+    }
     const root = document.documentElement
     // The full height is only read while the bar is open and at rest, so the
     // space reserved for it stays put during the animation.
@@ -76,13 +85,17 @@ export function usePhoneBar() {
   /** Brings the start of the list back under the bar, folded or not. */
   const scrollToList = useCallback(() => {
     const element = bar.current
-    if (!element) return
+    if (!element) {
+      return
+    }
     const full = parseFloat(
       document.documentElement.style.getPropertyValue("--bar-full")
     )
     // The page keeps room for the full bar; a folded one needs that much less.
     const target = Math.max((full || 0) - element.offsetHeight, 0)
-    if (Math.abs(window.scrollY - target) < 1) return
+    if (Math.abs(window.scrollY - target) < 1) {
+      return
+    }
     ownScroll.current = true
     window.scrollTo({ top: target })
   }, [])

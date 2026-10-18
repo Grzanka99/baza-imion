@@ -54,8 +54,22 @@ export default function App() {
   /** Pressing the sorted column again flips it; another column starts in its natural order. */
   function changeSort(key: SortKey) {
     let next = naturalOrder(key)
-    if (key === sort) next = oppositeOrder(order)
+    if (key === sort) {
+      next = oppositeOrder(order)
+    }
     update({ sort: key, order: next, page: 1 })
+  }
+
+  function handleOnSelect(name: string) {
+    update({ name })
+  }
+
+  function handleOnPage(next: number) {
+    update({ page: next })
+  }
+
+  function handleOnTrendClose() {
+    update({ name: null })
   }
 
   /** Searches for the name the dice came up with. */
@@ -98,7 +112,7 @@ export default function App() {
           sort={sort}
           order={order}
           onSort={changeSort}
-          onSelect={(name) => update({ name })}
+          onSelect={handleOnSelect}
           onNewRows={scrollToList}
           isFavorite={favorites.has}
           onToggleFavorite={favorites.toggle}
@@ -109,7 +123,7 @@ export default function App() {
           page={list.shownPage}
           pageCount={list.pageCount}
           disabled={loading}
-          onPage={(next) => update({ page: next })}
+          onPage={handleOnPage}
         />
       </div>
 
@@ -119,7 +133,7 @@ export default function App() {
           year={year}
           sex={sex}
           names={favorites.names}
-          onSelect={(name) => update({ name })}
+          onSelect={handleOnSelect}
           onToggle={favorites.toggle}
         />
       )}
@@ -127,9 +141,9 @@ export default function App() {
       <NameTrend
         dataset={dataset}
         name={view.name}
-        onClose={() => update({ name: null })}
+        onClose={handleOnTrendClose}
         favorite={view.name !== null && favorites.has(view.name)}
-        onToggleFavorite={() => view.name && favorites.toggle(view.name)}
+        onToggleFavorite={favorites.toggle}
       />
     </div>
   )

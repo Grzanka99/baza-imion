@@ -7,7 +7,8 @@
     "dev": "vp run -r --parallel dev",
     "build": "tsc -p tsconfig.node.json && vp run -r build",
     "start": "vp run @baza-imion/server#start",
-    "ready": "vp check && vp run -r build"
+    "ready": "vp check && vp run -r build",
+    "prepare": "vp config --no-agent"
   },
   "dependencies": {
     "@baza-imion/server": "workspace:*"

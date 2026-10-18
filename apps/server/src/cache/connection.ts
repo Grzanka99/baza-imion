@@ -5,7 +5,9 @@ export type Statement = string | { sql: string; args: (string | number)[] }
 
 // Without TURSO_URL the cache lives in memory only and is lost on restart.
 function connect() {
-  if (!process.env.TURSO_URL) return undefined
+  if (!process.env.TURSO_URL) {
+    return undefined
+  }
   return createClient({
     url: process.env.TURSO_URL,
     authToken: process.env.TURSO_TOKEN,
@@ -28,7 +30,9 @@ const CREATE_TABLE = `CREATE TABLE IF NOT EXISTS cache (
  * database turns out not to have it, so a normal start costs no extra call.
  */
 export async function run(statements: Statement[]) {
-  if (!client) return []
+  if (!client) {
+    return []
+  }
   try {
     return await client.batch(statements)
   } catch (error) {

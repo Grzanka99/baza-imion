@@ -20,14 +20,16 @@ export function YearSelect({
   year: YearFilter
   onChange: (year: YearFilter) => void
 }) {
+  function handleOnValueChange(value: string) {
+    if (value === "all") {
+      onChange("all")
+    } else {
+      onChange(Number(value))
+    }
+  }
+
   return (
-    <Select
-      value={String(year)}
-      onValueChange={(value) => {
-        if (value === "all") onChange("all")
-        else onChange(Number(value))
-      }}
-    >
+    <Select value={String(year)} onValueChange={handleOnValueChange}>
       <SelectTrigger aria-label="Rok" className="w-auto sm:w-40">
         <SelectValue />
       </SelectTrigger>

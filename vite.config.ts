@@ -25,4 +25,8 @@ export default defineConfig({
     },
   },
   lint,
+  // Run by .vite-hooks/pre-commit on the staged files.
+  staged: {
+    "*": "node scripts/check-file-size.ts",
+  },
 })

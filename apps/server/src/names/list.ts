@@ -29,8 +29,11 @@ interface NamesQuery {
 export async function queryNames(query: NamesQuery): Promise<NamesResponse> {
   const scope = await loadScope(query.dataset, query.year, query.sex)
   let matched: RankedRow[]
-  if (query.random) matched = pickRare(scope.rows)
-  else matched = match(scope.rows, query)
+  if (query.random) {
+    matched = pickRare(scope.rows)
+  } else {
+    matched = match(scope.rows, query)
+  }
 
   let matchedCount = scope.count
   if (matched !== scope.rows) {
@@ -71,7 +74,9 @@ function match(rows: RankedRow[], query: NamesQuery): RankedRow[] {
     const only = new Set(query.only)
     matched = matched.filter((row) => only.has(row.name))
   }
-  if (needle) matched = matched.filter((row) => row.folded.includes(needle))
+  if (needle) {
+    matched = matched.filter((row) => row.folded.includes(needle))
+  }
   if (query.sort === "name") {
     matched = [...matched].sort((a, b) => a.nameOrder - b.nameOrder)
   }

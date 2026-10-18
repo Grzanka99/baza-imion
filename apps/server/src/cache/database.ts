@@ -42,13 +42,17 @@ async function flushReads() {
     logFailure("read", error)
   }
   for (const [key, waiters] of waiting) {
-    for (const waiter of waiters) waiter(found.get(key))
+    for (const waiter of waiters) {
+      waiter(found.get(key))
+    }
   }
 }
 
 /** The unexpired entry the database holds for `key`, if any. */
 export function readEntry(key: string): Promise<Entry | undefined> {
-  if (!hasDatabase) return Promise.resolve(undefined)
+  if (!hasDatabase) {
+    return Promise.resolve(undefined)
+  }
   return new Promise((resolve) => {
     if (!pendingReads) {
       pendingReads = new Map()
@@ -86,7 +90,9 @@ let writing: Promise<void> | undefined
 
 /** Stores an entry; resolves once the batch it joined has been written. */
 export function writeEntry(key: string, entry: Entry): Promise<void> {
-  if (!hasDatabase) return Promise.resolve()
+  if (!hasDatabase) {
+    return Promise.resolve()
+  }
   if (!pendingWrites) {
     pendingWrites = new Map()
     writing = new Promise((resolve) => {

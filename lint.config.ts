@@ -77,6 +77,7 @@ export const lint: UserConfig["lint"] = {
     "valid-typeof": "error",
     "no-array-constructor": "error",
     "no-ternary": "error",
+    curly: ["error", "all"],
     "no-unused-expressions": "error",
     "typescript/ban-ts-comment": "error",
     "typescript/no-duplicate-enum-values": "error",
@@ -127,6 +128,7 @@ export const lint: UserConfig["lint"] = {
       ],
       rules: {
         "no-ternary": "off",
+        curly: "off",
       },
     },
   ],
