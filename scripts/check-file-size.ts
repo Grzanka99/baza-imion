@@ -17,23 +17,43 @@ function toRepoPath(file: string): string {
   return path.relative(root, path.resolve(file)).split(path.sep).join("/")
 }
 
-// One `git cat-file` call for all files; it prints one line per input path.
+// One `git cat-file` call for all files. `-Z` separates input and output with
+// NUL, so file names containing newlines can't shift the results.
 function stagedSizes(files: string[]): number[] {
-  const input = files.map((file) => `:${file}`).join("\n")
-  const lines = git(["cat-file", "--batch-check=%(objectsize)"], input)
-  return lines.trimEnd().split("\n").map(Number)
+  const input = files.map((file) => `:${file}\0`).join("")
+  const output = git(["cat-file", "-Z", "--batch-check=%(objectsize)"], input)
+  const sizes = output.split("\0").slice(0, files.length).map(Number)
+  files.forEach((file, i) => {
+    if (!Number.isInteger(sizes[i])) {
+      throw new Error(`Can't read the staged size of ${file}`)
+    }
+  })
+  return sizes
 }
 
 // The lockfile and shadcn components are marked `linguist-generated`
 // in .gitattributes: nobody writes them by hand, so nobody can split them.
 function isGenerated(file: string): boolean {
-  const line = git(["check-attr", "--cached", "linguist-generated", "--", file])
-  return line.trim().endsWith(": true") || line.trim().endsWith(": set")
+  const args = [
+    "check-attr",
+    "-z",
+    "--cached",
+    "linguist-generated",
+    "--",
+    file,
+  ]
+  // Output: path, attribute, value, each followed by NUL.
+  const value = git(args).split("\0")[2]
+  return value === "true" || value === "set"
 }
 
-// Git prints "-\t-" instead of line counts for binary files.
+// Git's own test: a NUL byte in the first 8,000 bytes of the staged content.
 function isBinary(file: string): boolean {
-  return git(["diff", "--cached", "--numstat", "--", file]).startsWith("-\t-")
+  const blob = execFileSync("git", ["cat-file", "blob", `:${file}`], {
+    cwd: root,
+    maxBuffer: Infinity,
+  })
+  return blob.subarray(0, 8000).includes(0)
 }
 
 function formatSplitHelp(tooBig: { file: string; bytes: number }[]): string {
@@ -84,7 +104,7 @@ const maxBytes = MAX_TOKENS * BYTES_PER_TOKEN
 if (files.length > 0) {
   const sizes = stagedSizes(files)
   const tooBig = files
-    .map((file, i) => ({ file, bytes: sizes[i] ?? 0 }))
+    .map((file, i) => ({ file, bytes: sizes[i] }))
     .filter(({ bytes }) => bytes > maxBytes)
     .filter(({ file }) => !isGenerated(file) && !isBinary(file))
   if (tooBig.length > 0) {
