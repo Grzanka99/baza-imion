@@ -10,7 +10,9 @@ const CACHEABLE =
   "public, max-age=3600, s-maxage=604800, stale-while-revalidate=864000"
 
 function cacheControl(params: URLSearchParams) {
-  if (params.get("random") === "1") return "no-store"
+  if (params.get("random") === "1") {
+    return "no-store"
+  }
   return CACHEABLE
 }
 
@@ -27,10 +29,16 @@ export function api<T>(handler: (params: URLSearchParams) => Promise<T>) {
         headers: { "Cache-Control": cacheControl(params) },
       })
     } catch (error) {
-      if (error instanceof BadRequest) return failure(400, error.message)
-      if (error instanceof NotFound) return failure(404, error.message)
+      if (error instanceof BadRequest) {
+        return failure(400, error.message)
+      }
+      if (error instanceof NotFound) {
+        return failure(404, error.message)
+      }
       let detail = error
-      if (error instanceof Error) detail = error.message
+      if (error instanceof Error) {
+        detail = error.message
+      }
       console.error(detail)
       return failure(502, "Nie udało się pobrać danych z dane.gov.pl")
     }

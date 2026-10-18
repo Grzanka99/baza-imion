@@ -20,8 +20,11 @@ async function withSlot<T>(task: () => Promise<T>): Promise<T> {
     return await task()
   } finally {
     const next = waiting.shift()
-    if (next) next()
-    else active--
+    if (next) {
+      next()
+    } else {
+      active--
+    }
   }
 }
 

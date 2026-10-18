@@ -35,7 +35,9 @@ export async function loadScope(
   sex: SexFilter
 ): Promise<Scope> {
   let years = DATASET_YEARS[dataset]
-  if (year !== "all") years = [year]
+  if (year !== "all") {
+    years = [year]
+  }
   const slices = (
     await Promise.all(years.map((each) => loadYear(dataset, each, sex)))
   ).flat()
@@ -55,7 +57,9 @@ export async function loadScope(
     fetchedAt: Math.min(...slices.map((slice) => slice.fetchedAt)),
   }
   scopes.set(key, scope)
-  if (scopes.size > MAX_SCOPES) scopes.delete(scopes.keys().next().value!)
+  if (scopes.size > MAX_SCOPES) {
+    scopes.delete(scopes.keys().next().value!)
+  }
   return scope
 }
 
@@ -65,7 +69,9 @@ function rank(slices: Slice[], sex: SexFilter) {
   const byName = new Map<string, RankedRow & { bySex: Record<Sex, number> }>()
   for (const slice of slices) {
     slice.forEach((name, rowSex, count) => {
-      if (sex !== "all" && rowSex !== sex) return
+      if (sex !== "all" && rowSex !== sex) {
+        return
+      }
       let row = byName.get(name)
       if (!row) {
         row = {
@@ -101,7 +107,9 @@ function rank(slices: Slice[], sex: SexFilter) {
   rows.forEach((row, index) => {
     const previous = rows[index - 1]
     row.rank = index + 1
-    if (previous?.count === row.count) row.rank = previous.rank
+    if (previous?.count === row.count) {
+      row.rank = previous.rank
+    }
     row.share = row.count / count
   })
 

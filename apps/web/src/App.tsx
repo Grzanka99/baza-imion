@@ -54,7 +54,9 @@ export default function App() {
   /** Pressing the sorted column again flips it; another column starts in its natural order. */
   function changeSort(key: SortKey) {
     let next = naturalOrder(key)
-    if (key === sort) next = oppositeOrder(order)
+    if (key === sort) {
+      next = oppositeOrder(order)
+    }
     update({ sort: key, order: next, page: 1 })
   }
 

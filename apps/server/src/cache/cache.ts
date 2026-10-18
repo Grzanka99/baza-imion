@@ -48,7 +48,9 @@ export function cached<T>(
   }
 
   const pending = inFlight.get(key)
-  if (pending) return pending as Promise<Cached<T>>
+  if (pending) {
+    return pending as Promise<Cached<T>>
+  }
 
   const promise = resolve(key, load).finally(() => inFlight.delete(key))
   inFlight.set(key, promise)
@@ -60,6 +62,8 @@ export function cached<T>(
  * already held. Resolves once it has been written.
  */
 export function prime(key: string, value: unknown): Promise<void> {
-  if (recall(key)) return Promise.resolve()
+  if (recall(key)) {
+    return Promise.resolve()
+  }
   return store(key, fresh(value))
 }

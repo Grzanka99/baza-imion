@@ -46,7 +46,9 @@ async function sendApi(url: URL, method: string, res: ServerResponse) {
 /** The file at `path`, opened for reading, when there is one. */
 async function openFile(path: string) {
   const info = await stat(path).catch(() => undefined)
-  if (!info?.isFile()) return undefined
+  if (!info?.isFile()) {
+    return undefined
+  }
   return { path, size: info.size, handle: await open(path) }
 }
 

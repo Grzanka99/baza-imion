@@ -32,7 +32,9 @@ export function RandomNameButton({
         { cache: "no-store" }
       )
       const drawn: NamesResponse = await response.json()
-      if (response.ok && drawn.rows[0]) onDraw(drawn.rows[0].name)
+      if (response.ok && drawn.rows[0]) {
+        onDraw(drawn.rows[0].name)
+      }
     } catch {
       // The search stays as it is; the button can simply be pressed again.
     } finally {

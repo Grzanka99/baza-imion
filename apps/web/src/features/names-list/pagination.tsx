@@ -64,7 +64,9 @@ function PageInput({ page, pageCount, disabled, onPage }: PaginationProps) {
       target = Math.min(Math.max(typed, 1), pageCount)
     }
     setText(String(target))
-    if (target !== page) onPage(target)
+    if (target !== page) {
+      onPage(target)
+    }
   }
 
   return (
@@ -77,7 +79,9 @@ function PageInput({ page, pageCount, disabled, onPage }: PaginationProps) {
       onChange={(event) => setText(event.target.value.replace(/\D/g, ""))}
       onBlur={commit}
       onKeyDown={(event) => {
-        if (event.key === "Enter") commit()
+        if (event.key === "Enter") {
+          commit()
+        }
       }}
     />
   )

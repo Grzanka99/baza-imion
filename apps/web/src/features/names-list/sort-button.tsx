@@ -4,8 +4,12 @@ import { Button } from "@/components/ui/button"
 import type { SortOrder } from "@baza-imion/shared"
 
 function SortArrow({ sorted, order }: { sorted: boolean; order: SortOrder }) {
-  if (!sorted) return <ArrowUpDown className="text-muted-foreground" />
-  if (order === "asc") return <ArrowUp />
+  if (!sorted) {
+    return <ArrowUpDown className="text-muted-foreground" />
+  }
+  if (order === "asc") {
+    return <ArrowUp />
+  }
   return <ArrowDown />
 }
 

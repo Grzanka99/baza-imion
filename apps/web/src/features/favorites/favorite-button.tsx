@@ -11,7 +11,9 @@ export function FavoriteButton({
   onToggle: () => void
 }) {
   let label = "Dodaj do ulubionych"
-  if (active) label = "Usuń z ulubionych"
+  if (active) {
+    label = "Usuń z ulubionych"
+  }
 
   return (
     <button

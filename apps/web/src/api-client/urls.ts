@@ -28,15 +28,27 @@ export function namesUrl(request: NamesRequest) {
     year: String(request.year),
     sex: request.sex,
   })
-  if (request.search !== undefined) params.set("q", request.search)
-  if (request.sort !== undefined) params.set("sort", request.sort)
-  if (request.order !== undefined) params.set("order", request.order)
-  if (request.page !== undefined) params.set("page", String(request.page))
+  if (request.search !== undefined) {
+    params.set("q", request.search)
+  }
+  if (request.sort !== undefined) {
+    params.set("sort", request.sort)
+  }
+  if (request.order !== undefined) {
+    params.set("order", request.order)
+  }
+  if (request.page !== undefined) {
+    params.set("page", String(request.page))
+  }
   if (request.perPage !== undefined) {
     params.set("perPage", String(request.perPage))
   }
-  if (request.random) params.set("random", "1")
-  if (request.names !== undefined) params.set("names", request.names.join(","))
+  if (request.random) {
+    params.set("random", "1")
+  }
+  if (request.names !== undefined) {
+    params.set("names", request.names.join(","))
+  }
   return `/api/names?${params}`
 }
 

@@ -44,12 +44,16 @@ export function NameTrend({
     name && trendUrl(dataset, name)
   )
   let trend = data
-  if (loading || error) trend = undefined
+  if (loading || error) {
+    trend = undefined
+  }
   const totals = trend?.totals ?? { M: 0, K: 0 }
   const sexes = SEXES.filter((sex) => totals[sex] > 0)
 
   let description = error ?? "Pobieram dane…"
-  if (trend) description = headline(dataset, trend, sexes)
+  if (trend) {
+    description = headline(dataset, trend, sexes)
+  }
 
   return (
     <Sheet open={name !== null} onOpenChange={(open) => !open && onClose()}>

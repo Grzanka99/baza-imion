@@ -24,7 +24,9 @@ export async function fetchChildrenHistory(): Promise<
 
   const years = new Map<number, YearEntry[]>()
   for (const line of lines) {
-    if (isBlank(line)) continue
+    if (isBlank(line)) {
+      continue
+    }
     const year = toCount(line[0])
     const name = line[1]?.trim().toUpperCase()
     const count = toCount(line[2])

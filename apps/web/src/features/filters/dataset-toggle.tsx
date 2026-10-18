@@ -15,7 +15,9 @@ export function DatasetToggle({
       aria-label="Zbiór danych"
       value={dataset}
       onValueChange={(value) => {
-        if (value) onChange(value as Dataset)
+        if (value) {
+          onChange(value as Dataset)
+        }
       }}
     >
       <ToggleGroupItem value="population">Cała populacja</ToggleGroupItem>

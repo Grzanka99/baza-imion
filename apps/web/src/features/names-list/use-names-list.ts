@@ -11,7 +11,9 @@ export const PER_PAGE = 25
  */
 export function useNamesList(view: View, favoriteNames: string[]) {
   let onlyNames: string[] | undefined
-  if (view.favorites) onlyNames = favoriteNames
+  if (view.favorites) {
+    onlyNames = favoriteNames
+  }
   const { data, error, loading } = useApi<NamesResponse>(
     namesUrl({
       dataset: view.dataset,
@@ -29,10 +31,14 @@ export function useNamesList(view: View, favoriteNames: string[]) {
   const pageCount = Math.ceil((data?.matchedNames ?? 0) / PER_PAGE) || 1
   // The server answers with the last page when the URL asks for one past it.
   let shownPage = view.page
-  if (data && !loading) shownPage = data.page
+  if (data && !loading) {
+    shownPage = data.page
+  }
 
   let rows = data?.rows
-  if (error) rows = []
+  if (error) {
+    rows = []
+  }
   let emptyText = "Brak imion pasujących do wyszukiwania."
   if (view.favorites && favoriteNames.length === 0) {
     emptyText =

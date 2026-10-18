@@ -21,7 +21,9 @@ export function SexToggle({
       className={className}
       value={sex}
       onValueChange={(value) => {
-        if (value) onChange(value as SexFilter)
+        if (value) {
+          onChange(value as SexFilter)
+        }
       }}
     >
       <ToggleGroupItem value="all" className="flex-1 sm:flex-none">

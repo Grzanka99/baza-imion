@@ -52,7 +52,9 @@ export function NamesTable({
     container.current
       ?.querySelector("[data-slot=table-container]")
       ?.scrollTo({ top: 0 })
-    if (window.scrollY > 0) onNewRows()
+    if (window.scrollY > 0) {
+      onNewRows()
+    }
   }, [rows, onNewRows])
 
   const sortButton = (key: SortKey, label: string) => (
