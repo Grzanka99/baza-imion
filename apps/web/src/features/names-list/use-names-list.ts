@@ -18,7 +18,7 @@ export function useNamesList(view: View, favoriteNames: string[]) {
     namesUrl({
       dataset: view.dataset,
       year: view.year,
-      sex: view.sex,
+      gender: view.gender,
       search: view.search,
       sort: view.sort,
       order: view.order,

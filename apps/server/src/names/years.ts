@@ -1,4 +1,4 @@
-import type { Dataset, Sex, SexFilter } from "@baza-imion/shared"
+import type { Dataset, Gender, GenderFilter } from "@baza-imion/shared"
 import { cached, prime } from "../cache/cache.ts"
 import {
   fetchChildrenHistory,
@@ -7,10 +7,10 @@ import {
 import { YEARLY_LISTS } from "../upstream/resource-ids.ts"
 import { fetchNameCounts } from "../upstream/yearly-list.ts"
 
-/** One cached upstream answer: a year of names for one sex or both. */
+/** One cached upstream answer: a year of names for one gender or both. */
 export interface Slice {
   fetchedAt: number
-  forEach(visit: (name: string, sex: Sex, count: number) => void): void
+  forEach(visit: (name: string, gender: Gender, count: number) => void): void
 }
 
 const historyKey = (year: number) => `year:${year}`
@@ -23,33 +23,33 @@ function fetchHistory() {
   return history
 }
 
-async function loadFile(resourceId: number, sex: Sex): Promise<Slice> {
+async function loadFile(resourceId: number, gender: Gender): Promise<Slice> {
   const { value, fetchedAt } = await cached(`file:${resourceId}`, () =>
-    fetchNameCounts(resourceId, sex)
+    fetchNameCounts(resourceId, gender)
   )
   return {
     fetchedAt,
     forEach: (visit) => {
       for (const [name, count] of value) {
-        visit(name, sex, count)
+        visit(name, gender, count)
       }
     },
   }
 }
 
-/** Loads one year of a dataset, skipping the other sex's file when filtered. */
+/** Loads one year of a dataset, skipping the other gender's file when filtered. */
 export async function loadYear(
   dataset: Dataset,
   year: number,
-  sex: SexFilter = "all"
+  gender: GenderFilter = "all"
 ): Promise<Slice[]> {
   const files = YEARLY_LISTS[dataset][year]
   if (files) {
-    let sexes: Sex[] = ["M", "K"]
-    if (sex !== "all") {
-      sexes = [sex]
+    let genders: Gender[] = ["M", "K"]
+    if (gender !== "all") {
+      genders = [gender]
     }
-    return Promise.all(sexes.map((each) => loadFile(files[each], each)))
+    return Promise.all(genders.map((each) => loadFile(files[each], each)))
   }
 
   const { value, fetchedAt } = await cached<YearEntry[]>(
@@ -69,8 +69,8 @@ export async function loadYear(
     {
       fetchedAt,
       forEach: (visit) => {
-        for (const [name, rowSex, count] of value) {
-          visit(name, rowSex, count)
+        for (const [name, rowGender, count] of value) {
+          visit(name, rowGender, count)
         }
       },
     },

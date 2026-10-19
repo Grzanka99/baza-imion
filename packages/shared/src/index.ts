@@ -1,7 +1,7 @@
 export * from "./names.ts"
 
-export type Sex = "M" | "K"
-export type SexFilter = Sex | "all"
+export type Gender = "M" | "K"
+export type GenderFilter = Gender | "all"
 export type YearFilter = number | "all"
 export type SortKey = "count" | "name"
 export type SortOrder = "asc" | "desc"
@@ -49,16 +49,16 @@ export function oppositeOrder(order: SortOrder): SortOrder {
 }
 
 export interface NameRow {
-  /** Position by count within the selected year(s) and sex; ties share a rank. */
+  /** Position by count within the selected year(s) and gender; ties share a rank. */
   rank: number
   name: string
   /**
-   * Who bears the name, the larger group first. With both sexes selected a
+   * Who bears the name, the larger group first. With both genders selected a
    * name shared by men and women is one row, and `count` is their sum.
    */
-  sexes: { sex: Sex; count: number }[]
+  genders: { gender: Gender; count: number }[]
   count: number
-  /** Fraction of all people in the selected year(s) and sex. */
+  /** Fraction of all people in the selected year(s) and gender. */
   share: number
 }
 
@@ -71,7 +71,7 @@ export interface NamesResponse {
   matchedNames: number
   /** People with a name matching the search. */
   matchedCount: number
-  /** Names and people in the selected year(s) and sex, ignoring the search. */
+  /** Names and people in the selected year(s) and gender, ignoring the search. */
   scopeNames: number
   scopeCount: number
   /** Oldest upstream fetch used for this answer (ms since epoch). */
@@ -87,7 +87,7 @@ export interface TrendPoint {
 export interface TrendResponse {
   name: string
   points: TrendPoint[]
-  totals: Record<Sex, number>
+  totals: Record<Gender, number>
   fetchedAt: number
 }
 

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import type {
   Dataset,
   NamesResponse,
-  SexFilter,
+  GenderFilter,
   YearFilter,
 } from "@baza-imion/shared"
 
@@ -15,12 +15,12 @@ import type {
 export function RandomNameButton({
   dataset,
   year,
-  sex,
+  gender,
   onDraw,
 }: {
   dataset: Dataset
   year: YearFilter
-  sex: SexFilter
+  gender: GenderFilter
   onDraw: (name: string) => void
 }) {
   const [drawing, setDrawing] = useState(false)
@@ -28,7 +28,7 @@ export function RandomNameButton({
   async function draw() {
     setDrawing(true)
     try {
-      const url = namesUrl({ dataset, year, sex, random: true })
+      const url = namesUrl({ dataset, year, gender, random: true })
       const report = watchAnswer(url)
       const response = await fetch(url, { cache: "no-store" })
       const drawn: NamesResponse = await response.json()

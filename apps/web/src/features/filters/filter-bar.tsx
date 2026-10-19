@@ -5,13 +5,13 @@ import { OnlyFavoritesButton } from "@/features/favorites/only-favorites-button"
 import { DatasetToggle } from "@/features/filters/dataset-toggle"
 import { RandomNameButton } from "@/features/filters/random-name-button"
 import { SearchInput } from "@/features/filters/search-input"
-import { SexToggle } from "@/features/filters/sex-toggle"
+import { GenderToggle } from "@/features/filters/gender-toggle"
 import { YearSelect } from "@/features/filters/year-select"
 import type { View } from "@/hooks/use-view"
 import {
   defaultYear,
   type Dataset,
-  type SexFilter,
+  type GenderFilter,
   type YearFilter,
 } from "@baza-imion/shared"
 
@@ -29,7 +29,7 @@ interface FilterBarProps {
 }
 
 /**
- * The title and the filters. On phones a fixed bar that folds down to the sex
+ * The title and the filters. On phones a fixed bar that folds down to the gender
  * switch while the page scrolls; from sm up its parts are ordinary rows of
  * the page.
  */
@@ -42,10 +42,10 @@ export function FilterBar({
   onDraw,
   children,
 }: FilterBarProps) {
-  const { dataset, search, sex, year } = view
+  const { dataset, search, gender, year } = view
 
-  function handleOnSexChange(next: SexFilter) {
-    update({ sex: next, page: 1 })
+  function handleOnGenderChange(next: GenderFilter) {
+    update({ gender: next, page: 1 })
   }
 
   function handleOnDatasetChange(next: Dataset) {
@@ -64,12 +64,12 @@ export function FilterBar({
     update({ favorites: !view.favorites, page: 1 })
   }
 
-  const sexToggle = (className: string) => (
-    <SexToggle
+  const genderToggle = (className: string) => (
+    <GenderToggle
       dataset={dataset}
-      sex={sex}
+      gender={gender}
       className={className}
-      onChange={handleOnSexChange}
+      onChange={handleOnGenderChange}
     />
   )
 
@@ -95,7 +95,7 @@ export function FilterBar({
             initialValue={search}
             onSearch={handleOnSearch}
           />
-          {sexToggle("hidden sm:flex")}
+          {genderToggle("hidden sm:flex")}
           <YearSelect
             dataset={dataset}
             year={year}
@@ -104,7 +104,7 @@ export function FilterBar({
           <RandomNameButton
             dataset={dataset}
             year={year}
-            sex={sex}
+            gender={gender}
             onDraw={onDraw}
           />
           <OnlyFavoritesButton
@@ -114,7 +114,7 @@ export function FilterBar({
         </div>
       </Collapse>
 
-      <div className="sm:hidden">{sexToggle("w-full")}</div>
+      <div className="sm:hidden">{genderToggle("w-full")}</div>
 
       <Collapse open={!collapsed} className="pt-3">
         {children}

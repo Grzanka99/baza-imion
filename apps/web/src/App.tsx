@@ -21,7 +21,7 @@ import {
 
 export default function App() {
   const [view, update] = useView()
-  const { dataset, search, sex, year, sort, order } = view
+  const { dataset, search, gender, year, sort, order } = view
   // Remounts the search box, which owns the typed text.
   const [resetCount, setResetCount] = useState(0)
   const { bar, collapsed, scrollToList } = usePhoneBar()
@@ -32,7 +32,7 @@ export default function App() {
 
   const filtered =
     search !== "" ||
-    sex !== "all" ||
+    gender !== "all" ||
     year !== defaultYear(dataset) ||
     sort !== "count" ||
     order !== "desc" ||
@@ -41,7 +41,7 @@ export default function App() {
   function resetFilters() {
     update({
       search: "",
-      sex: "all",
+      gender: "all",
       year: defaultYear(dataset),
       sort: "count",
       order: "desc",
@@ -131,7 +131,7 @@ export default function App() {
         <FavoritesPanel
           dataset={dataset}
           year={year}
-          sex={sex}
+          gender={gender}
           names={favorites.names}
           onSelect={handleOnSelect}
           onToggle={favorites.toggle}

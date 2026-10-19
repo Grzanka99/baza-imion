@@ -15,11 +15,11 @@ import { TrendChart } from "@/features/name-trend/trend-chart"
 import { TrendTable } from "@/features/name-trend/trend-table"
 import { trackName } from "@/lib/analytics"
 import { displayName, formatCount, formatNumber } from "@/lib/format"
-import { SEX_LABEL } from "@/lib/labels"
+import { GENDER_LABEL } from "@/lib/labels"
 import { HOME_TITLE, nameTitle } from "@baza-imion/shared"
-import type { Dataset, Sex, TrendResponse } from "@baza-imion/shared"
+import type { Dataset, Gender, TrendResponse } from "@baza-imion/shared"
 
-const SEXES: Sex[] = ["M", "K"]
+const GENDERS: Gender[] = ["M", "K"]
 
 const FOOTNOTE: Record<Dataset, string> = {
   children:
@@ -70,11 +70,11 @@ export function NameTrend({
   }, [name, shown])
 
   const totals = trend?.totals ?? { M: 0, K: 0 }
-  const sexes = SEXES.filter((sex) => totals[sex] > 0)
+  const genders = GENDERS.filter((gender) => totals[gender] > 0)
 
   let description = error ?? "Pobieram dane…"
   if (trend) {
-    description = headline(dataset, trend, sexes)
+    description = headline(dataset, trend, genders)
   }
 
   function handleOnOpenChange(open: boolean) {
@@ -112,12 +112,12 @@ export function NameTrend({
               <TrendChart
                 dataset={dataset}
                 points={trend.points}
-                sexes={sexes}
+                genders={genders}
               />
               <TrendTable
                 dataset={dataset}
                 points={trend.points}
-                sexes={sexes}
+                genders={genders}
               />
               <p className="shrink-0 text-xs text-muted-foreground">
                 {FOOTNOTE[dataset]}
@@ -131,18 +131,20 @@ export function NameTrend({
 }
 
 /** Births add up over the years; a population is read off the latest snapshot. */
-function headline(dataset: Dataset, trend: TrendResponse, sexes: Sex[]) {
-  const labels = SEX_LABEL[dataset]
+function headline(dataset: Dataset, trend: TrendResponse, genders: Gender[]) {
+  const labels = GENDER_LABEL[dataset]
   const first = trend.points[0]
   const last = trend.points.at(-1)!
   if (dataset === "children") {
-    const totals = sexes.map(
-      (sex) => `${labels[sex].many}: ${formatNumber(trend.totals[sex])}`
+    const totals = genders.map(
+      (gender) =>
+        `${labels[gender].many}: ${formatNumber(trend.totals[gender])}`
     )
     return `${totals.join(" · ")} w latach ${first.year}–${last.year}`
   }
-  const latest = sexes.map(
-    (sex) => `${labels[sex].many}: ${formatCount(last[sex], "brak danych")}`
+  const latest = genders.map(
+    (gender) =>
+      `${labels[gender].many}: ${formatCount(last[gender], "brak danych")}`
   )
   return `${latest.join(" · ")} w ${last.year} r.`
 }

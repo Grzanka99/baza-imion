@@ -1,13 +1,13 @@
-import type { Sex } from "@baza-imion/shared"
+import type { Gender } from "@baza-imion/shared"
 import { isBlank, toCount } from "./csv.ts"
 import { fetchCsv } from "./download.ts"
 
-/** Names given to children in 2000-2019: one file, one row per year, name and sex. */
+/** Names given to children in 2000-2019: one file, one row per year, name and gender. */
 const HISTORY_RESOURCE = 21458
 const HISTORY_FIRST_YEAR = 2000
 const HISTORY_LAST_YEAR = 2019
 
-export type YearEntry = [name: string, sex: Sex, count: number]
+export type YearEntry = [name: string, gender: Gender, count: number]
 
 /**
  * Fetches the 2000-2019 children's names in one request and splits them by
@@ -30,18 +30,18 @@ export async function fetchChildrenHistory(): Promise<
     const year = toCount(line[0])
     const name = line[1]?.trim().toUpperCase()
     const count = toCount(line[2])
-    const sex = line[3]?.trim()
+    const gender = line[3]?.trim()
     if (
       line.length !== 4 ||
       !(year >= HISTORY_FIRST_YEAR && year <= HISTORY_LAST_YEAR) ||
       !name ||
       !(count >= 1) ||
-      (sex !== "M" && sex !== "K")
+      (gender !== "M" && gender !== "K")
     ) {
       throw new Error("dane.gov.pl: unexpected row in the 2000-2019 file")
     }
     const entries = years.get(year) ?? []
-    entries.push([name, sex, count])
+    entries.push([name, gender, count])
     years.set(year, entries)
   }
   for (let year = HISTORY_FIRST_YEAR; year <= HISTORY_LAST_YEAR; year++) {

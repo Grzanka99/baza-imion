@@ -1,13 +1,13 @@
 import { namesUrl } from "@/api-client/urls"
 import { useApi } from "@/api-client/use-api"
-import { SexIcons } from "@/components/sex-icon"
+import { GenderIcons } from "@/components/gender-icon"
 import { FavoriteButton } from "@/features/favorites/favorite-button"
 import { displayName, formatCount, formatPercent } from "@/lib/format"
 import type {
   Dataset,
   NameRow,
   NamesResponse,
-  SexFilter,
+  GenderFilter,
   YearFilter,
 } from "@baza-imion/shared"
 
@@ -18,7 +18,7 @@ const MAX_WITH_FIGURES = 100
 interface FavoritesPanelProps {
   dataset: Dataset
   year: YearFilter
-  sex: SexFilter
+  gender: GenderFilter
   /** Favourite names, alphabetically. */
   names: string[]
   onSelect: (name: string) => void
@@ -29,17 +29,17 @@ interface FavoritesPanelProps {
 export function FavoritesPanel({
   dataset,
   year,
-  sex,
+  gender,
   names,
   onSelect,
   onToggle,
 }: FavoritesPanelProps) {
   const { data } = useApi<NamesResponse>(
-    namesUrl({ dataset, year, sex, names, perPage: MAX_WITH_FIGURES })
+    namesUrl({ dataset, year, gender, names, perPage: MAX_WITH_FIGURES })
   )
 
   // Names with figures come first, most common on top; the rest (absent from
-  // this dataset, year or sex) follow alphabetically.
+  // this dataset, year or gender) follow alphabetically.
   const rows = new Map(data?.rows.map((row) => [row.name, row]))
   const listed = [
     ...(data?.rows.map((row) => row.name) ?? []).filter((name) =>
@@ -106,7 +106,7 @@ function FavoritesPanelItem({
       </button>
       <span className="text-right tabular-nums">{formatCount(row?.count)}</span>
       <span className="text-center">
-        {row && <SexIcons dataset={dataset} row={row} />}
+        {row && <GenderIcons dataset={dataset} row={row} />}
       </span>
       <span className="text-right text-muted-foreground tabular-nums">
         {row && formatPercent(row.share)}

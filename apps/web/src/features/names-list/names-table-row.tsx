@@ -1,4 +1,4 @@
-import { SexIcons } from "@/components/sex-icon"
+import { GenderIcons } from "@/components/gender-icon"
 import { TableCell, TableRow } from "@/components/ui/table"
 import { FavoriteButton } from "@/features/favorites/favorite-button"
 import { displayName, formatNumber, formatPercent } from "@/lib/format"
@@ -62,7 +62,7 @@ export function NamesTableRow({
         {formatNumber(row.count)}
       </TableCell>
       <TableCell className="text-center">
-        <SexIcons dataset={dataset} row={row} />
+        <GenderIcons dataset={dataset} row={row} />
       </TableCell>
       <TableCell className="text-right text-muted-foreground tabular-nums">
         {formatPercent(row.share)}

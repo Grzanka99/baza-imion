@@ -1,4 +1,4 @@
-import type { SexFilter, SortKey, SortOrder } from "@baza-imion/shared"
+import type { GenderFilter, SortKey, SortOrder } from "@baza-imion/shared"
 import { queryNames } from "../names/list.ts"
 import { queryTrend } from "../names/trend.ts"
 import { BadRequest, NotFound } from "./errors.ts"
@@ -18,7 +18,7 @@ export const handleNames = api((params) => {
   return queryNames({
     dataset: selected,
     year: yearFilter(params, selected),
-    sex: oneOf<SexFilter>(params, "sex", ["all", "M", "K"]),
+    gender: oneOf<GenderFilter>(params, "gender", ["all", "M", "K"]),
     search: params.get("q") ?? "",
     sort: oneOf<SortKey>(params, "sort", ["count", "name"]),
     order: oneOf<SortOrder>(params, "order", ["desc", "asc"]),

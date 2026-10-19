@@ -10,7 +10,7 @@ import {
   naturalOrder,
   oppositeOrder,
   type Dataset,
-  type SexFilter,
+  type GenderFilter,
   type SortKey,
   type SortOrder,
   type YearFilter,
@@ -23,7 +23,7 @@ import {
 export interface View {
   dataset: Dataset
   search: string
-  sex: SexFilter
+  gender: GenderFilter
   year: YearFilter
   sort: SortKey
   order: SortOrder
@@ -66,7 +66,12 @@ function parse(url: string): View {
   return {
     dataset,
     search: params.get("q") ?? "",
-    sex: oneOf<SexFilter>(params.get("sex"), ["all", "M", "K"]),
+    // Links from before the rename say ?sex=K.
+    gender: oneOf<GenderFilter>(params.get("gender") ?? params.get("sex"), [
+      "all",
+      "M",
+      "K",
+    ]),
     year,
     sort,
     order: oneOf<SortOrder>(params.get("order"), [
@@ -93,8 +98,8 @@ function serialize(view: View) {
   if (view.search) {
     params.set("q", view.search)
   }
-  if (view.sex !== "all") {
-    params.set("sex", view.sex)
+  if (view.gender !== "all") {
+    params.set("gender", view.gender)
   }
   if (view.year !== defaultYear(view.dataset)) {
     params.set("year", String(view.year))

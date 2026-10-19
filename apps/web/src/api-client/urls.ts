@@ -1,6 +1,6 @@
 import type {
   Dataset,
-  SexFilter,
+  GenderFilter,
   SortKey,
   SortOrder,
   YearFilter,
@@ -10,7 +10,7 @@ import type {
 interface NamesRequest {
   dataset: Dataset
   year: YearFilter
-  sex: SexFilter
+  gender: GenderFilter
   search?: string
   sort?: SortKey
   order?: SortOrder
@@ -26,7 +26,7 @@ export function namesUrl(request: NamesRequest) {
   const params = new URLSearchParams({
     dataset: request.dataset,
     year: String(request.year),
-    sex: request.sex,
+    gender: request.gender,
   })
   if (request.search !== undefined) {
     params.set("q", request.search)

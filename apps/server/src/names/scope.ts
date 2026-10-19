@@ -2,8 +2,8 @@ import {
   DATASET_YEARS,
   type Dataset,
   type NameRow,
-  type Sex,
-  type SexFilter,
+  type Gender,
+  type GenderFilter,
   type YearFilter,
 } from "@baza-imion/shared"
 import { fold } from "./fold.ts"
@@ -17,7 +17,7 @@ export interface RankedRow extends NameRow {
   nameOrder: number
 }
 
-/** Every name in one dataset, year selection and sex, ranked by count. */
+/** Every name in one dataset, year selection and gender, ranked by count. */
 interface Scope {
   signature: string
   rows: RankedRow[]
@@ -32,17 +32,17 @@ const scopes = new Map<string, Scope>()
 export async function loadScope(
   dataset: Dataset,
   year: YearFilter,
-  sex: SexFilter
+  gender: GenderFilter
 ): Promise<Scope> {
   let years = DATASET_YEARS[dataset]
   if (year !== "all") {
     years = [year]
   }
   const slices = (
-    await Promise.all(years.map((each) => loadYear(dataset, each, sex)))
+    await Promise.all(years.map((each) => loadYear(dataset, each, gender)))
   ).flat()
 
-  const key = `${dataset}:${year}:${sex}`
+  const key = `${dataset}:${year}:${gender}`
   const signature = slices.map((slice) => slice.fetchedAt).join()
   const known = scopes.get(key)
   scopes.delete(key)
@@ -53,7 +53,7 @@ export async function loadScope(
 
   const scope = {
     signature,
-    ...rank(slices, sex),
+    ...rank(slices, gender),
     fetchedAt: Math.min(...slices.map((slice) => slice.fetchedAt)),
   }
   scopes.set(key, scope)
@@ -63,21 +63,24 @@ export async function loadScope(
   return scope
 }
 
-function rank(slices: Slice[], sex: SexFilter) {
-  // One row per name: with both sexes selected, men and women who share a
+function rank(slices: Slice[], gender: GenderFilter) {
+  // One row per name: with both genders selected, men and women who share a
   // name are counted together.
-  const byName = new Map<string, RankedRow & { bySex: Record<Sex, number> }>()
+  const byName = new Map<
+    string,
+    RankedRow & { byGender: Record<Gender, number> }
+  >()
   for (const slice of slices) {
-    slice.forEach((name, rowSex, count) => {
-      if (sex !== "all" && rowSex !== sex) {
+    slice.forEach((name, rowGender, count) => {
+      if (gender !== "all" && rowGender !== gender) {
         return
       }
       let row = byName.get(name)
       if (!row) {
         row = {
           name,
-          sexes: [],
-          bySex: { M: 0, K: 0 },
+          genders: [],
+          byGender: { M: 0, K: 0 },
           count: 0,
           rank: 0,
           share: 0,
@@ -87,17 +90,19 @@ function rank(slices: Slice[], sex: SexFilter) {
         byName.set(name, row)
       }
       row.count += count
-      row.bySex[rowSex] += count
+      row.byGender[rowGender] += count
     })
   }
 
-  const rows: RankedRow[] = [...byName.values()].map(({ bySex, ...row }) => ({
-    ...row,
-    sexes: (["M", "K"] as const)
-      .filter((each) => bySex[each] > 0)
-      .map((each) => ({ sex: each, count: bySex[each] }))
-      .sort((a, b) => b.count - a.count),
-  }))
+  const rows: RankedRow[] = [...byName.values()].map(
+    ({ byGender, ...row }) => ({
+      ...row,
+      genders: (["M", "K"] as const)
+        .filter((each) => byGender[each] > 0)
+        .map((each) => ({ gender: each, count: byGender[each] }))
+        .sort((a, b) => b.count - a.count),
+    })
+  )
   rows
     .sort((a, b) => collator.compare(a.name, b.name))
     .forEach((row, index) => (row.nameOrder = index))
