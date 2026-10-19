@@ -9,23 +9,23 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart"
 import { formatCompact } from "@/lib/format"
-import { SEX_COLOR, SEX_LABEL } from "@/lib/labels"
-import type { Dataset, Sex, TrendPoint } from "@baza-imion/shared"
+import { GENDER_COLOR, GENDER_LABEL } from "@/lib/labels"
+import type { Dataset, Gender, TrendPoint } from "@baza-imion/shared"
 
 export function TrendChart({
   dataset,
   points,
-  sexes,
+  genders,
 }: {
   dataset: Dataset
   points: TrendPoint[]
-  /** The sexes to draw a line for. */
-  sexes: Sex[]
+  /** The genders to draw a line for. */
+  genders: Gender[]
 }) {
-  const labels = SEX_LABEL[dataset]
+  const labels = GENDER_LABEL[dataset]
   const chartConfig = {
-    M: { label: labels.M.many, color: SEX_COLOR.M },
-    K: { label: labels.K.many, color: SEX_COLOR.K },
+    M: { label: labels.M.many, color: GENDER_COLOR.M },
+    K: { label: labels.K.many, color: GENDER_COLOR.K },
   } satisfies ChartConfig
   // Years below the reporting threshold are gaps in the line, not zeros.
   const chartData = points.map((point) => ({
@@ -57,20 +57,20 @@ export function TrendChart({
           tickFormatter={formatCompact}
         />
         <ChartTooltip content={<ChartTooltipContent />} />
-        {sexes.length > 1 && (
+        {genders.length > 1 && (
           <ChartLegend content={<ChartLegendContent />} itemSorter={null} />
         )}
-        {sexes.map((sex) => (
+        {genders.map((gender) => (
           <Line
-            key={sex}
-            dataKey={sex}
+            key={gender}
+            dataKey={gender}
             type="linear"
-            stroke={`var(--color-${sex})`}
+            stroke={`var(--color-${gender})`}
             strokeWidth={2}
             dot={{
               r: 3,
               strokeWidth: 0,
-              fill: `var(--color-${sex})`,
+              fill: `var(--color-${gender})`,
             }}
             activeDot={{ r: 5 }}
             isAnimationActive={false}

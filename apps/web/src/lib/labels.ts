@@ -1,8 +1,8 @@
-import type { Dataset, Sex } from "@baza-imion/shared"
+import type { Dataset, Gender } from "@baza-imion/shared"
 
-export const SEX_LABEL: Record<
+export const GENDER_LABEL: Record<
   Dataset,
-  Record<Sex, { one: string; many: string }>
+  Record<Gender, { one: string; many: string }>
 > = {
   children: {
     M: { one: "chłopiec", many: "Chłopcy" },
@@ -20,7 +20,7 @@ export const PEOPLE_NOUN: Record<Dataset, [string, string, string]> = {
   population: ["osoba", "osoby", "osób"],
 }
 
-export const SEX_COLOR: Record<Sex, string> = {
+export const GENDER_COLOR: Record<Gender, string> = {
   M: "var(--series-m)",
   K: "var(--series-k)",
 }

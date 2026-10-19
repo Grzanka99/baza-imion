@@ -1,11 +1,11 @@
-import type { Dataset, Sex } from "@baza-imion/shared"
+import type { Dataset, Gender } from "@baza-imion/shared"
 
-// dane.gov.pl resource ids of the yearly first-name lists, one per sex.
+// dane.gov.pl resource ids of the yearly first-name lists, one per gender.
 // Children before 2020 come from a single file covering 2000-2019 instead
 // (see children-history.ts).
 export const YEARLY_LISTS: Record<
   Dataset,
-  Record<number, Record<Sex, number>>
+  Record<number, Record<Gender, number>>
 > = {
   children: {
     2020: { M: 28020, K: 28021 },

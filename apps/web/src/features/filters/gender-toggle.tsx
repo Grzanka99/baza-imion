@@ -1,23 +1,23 @@
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { track } from "@/lib/analytics"
-import { SEX_LABEL } from "@/lib/labels"
-import type { Dataset, SexFilter } from "@baza-imion/shared"
+import { GENDER_LABEL } from "@/lib/labels"
+import type { Dataset, GenderFilter } from "@baza-imion/shared"
 
-export function SexToggle({
+export function GenderToggle({
   dataset,
-  sex,
+  gender,
   className,
   onChange,
 }: {
   dataset: Dataset
-  sex: SexFilter
+  gender: GenderFilter
   className: string
-  onChange: (sex: SexFilter) => void
+  onChange: (gender: GenderFilter) => void
 }) {
   function handleOnValueChange(value: string) {
     if (value) {
-      track("sex-changed", { sex: value })
-      onChange(value as SexFilter)
+      track("gender-changed", { gender: value })
+      onChange(value as GenderFilter)
     }
   }
 
@@ -27,17 +27,17 @@ export function SexToggle({
       variant="outline"
       aria-label="Płeć"
       className={className}
-      value={sex}
+      value={gender}
       onValueChange={handleOnValueChange}
     >
       <ToggleGroupItem value="all" className="flex-1 sm:flex-none">
         Wszyscy
       </ToggleGroupItem>
       <ToggleGroupItem value="M" className="flex-1 sm:flex-none">
-        {SEX_LABEL[dataset].M.many}
+        {GENDER_LABEL[dataset].M.many}
       </ToggleGroupItem>
       <ToggleGroupItem value="K" className="flex-1 sm:flex-none">
-        {SEX_LABEL[dataset].K.many}
+        {GENDER_LABEL[dataset].K.many}
       </ToggleGroupItem>
     </ToggleGroup>
   )

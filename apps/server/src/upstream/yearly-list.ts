@@ -1,14 +1,14 @@
-import type { Sex } from "@baza-imion/shared"
+import type { Gender } from "@baza-imion/shared"
 import { isBlank, toCount } from "./csv.ts"
 import { fetchCsv } from "./download.ts"
 
 /**
- * Fetches a whole one-sex list of names and counts. Columns are name,
- * optionally sex, then count; header wording varies by year.
+ * Fetches a whole one-gender list of names and counts. Columns are name,
+ * optionally gender, then count; header wording varies by year.
  */
 export async function fetchNameCounts(
   resourceId: number,
-  sex: Sex
+  gender: Gender
 ): Promise<[name: string, count: number][]> {
   const [header, ...lines] = await fetchCsv(resourceId)
   const width = header?.length
@@ -26,7 +26,7 @@ export async function fetchNameCounts(
     if (
       line.length !== width ||
       !(count >= 1) ||
-      (width === 3 && !line[1].trim().toUpperCase().startsWith(sex))
+      (width === 3 && !line[1].trim().toUpperCase().startsWith(gender))
     ) {
       throw new Error(`dane.gov.pl: unexpected row in resource ${resourceId}`)
     }

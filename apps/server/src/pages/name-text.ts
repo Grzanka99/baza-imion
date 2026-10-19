@@ -1,5 +1,10 @@
 import { DATASET_YEARS, plural } from "@baza-imion/shared"
-import type { Dataset, NameRow, Sex, TrendResponse } from "@baza-imion/shared"
+import type {
+  Dataset,
+  NameRow,
+  Gender,
+  TrendResponse,
+} from "@baza-imion/shared"
 import { formatNumber, table } from "./html.ts"
 
 // The sentences and tables of a name's page, in Polish.
@@ -11,9 +16,9 @@ export interface Figures {
   row: NameRow | undefined
 }
 
-const SEXES: Sex[] = ["M", "K"]
+const GENDERS: Gender[] = ["M", "K"]
 
-const SEX_LABEL: Record<Dataset, Record<Sex, string>> = {
+const GENDER_LABEL: Record<Dataset, Record<Gender, string>> = {
   children: { M: "chłopcy", K: "dziewczynki" },
   population: { M: "mężczyźni", K: "kobiety" },
 }
@@ -25,13 +30,14 @@ const CHILDREN_SPAN = `${CHILDREN_YEARS[0]}–${CHILDREN_YEARS.at(-1)}`
 export const FOOTNOTE =
   "Źródło: rejestr PESEL, dane.gov.pl. Rejestr nie wykazuje imion noszonych przez jedną osobę ani imion nadanych w danym roku mniej niż 5 razy (od 2013 r. mniej niż 2 razy), dlatego „–” nie oznacza zera."
 
-/** "(kobiety: 120, mężczyźni: 3)" for a name both sexes bear, else nothing. */
-function sexSplit(dataset: Dataset, row: NameRow) {
-  if (row.sexes.length < 2) {
+/** "(kobiety: 120, mężczyźni: 3)" for a name both genders bear, else nothing. */
+function genderSplit(dataset: Dataset, row: NameRow) {
+  if (row.genders.length < 2) {
     return ""
   }
-  const parts = row.sexes.map(
-    ({ sex, count }) => `${SEX_LABEL[dataset][sex]}: ${formatNumber(count)}`
+  const parts = row.genders.map(
+    ({ gender, count }) =>
+      `${GENDER_LABEL[dataset][gender]}: ${formatNumber(count)}`
   )
   return ` (${parts.join(", ")})`
 }
@@ -42,7 +48,7 @@ export function populationSentence(shown: string, row: NameRow) {
   const people = plural(count, "osoba", "osoby", "osób")
   return (
     `Według rejestru PESEL w Polsce ${lives} ${formatNumber(count)} ${people} ` +
-    `o imieniu ${shown}${sexSplit("population", row)}, stan na styczeń ` +
+    `o imieniu ${shown}${genderSplit("population", row)}, stan na styczeń ` +
     `${POPULATION_YEAR} r. Imię zajmuje ${row.rank}. miejsce w rankingu.`
   )
 }
@@ -54,7 +60,7 @@ export function childrenSentence(
 ) {
   const given = `${formatNumber(row.count)} ${plural(row.count, "dziecku", "dzieciom", "dzieciom")}`
   const text =
-    `W latach ${CHILDREN_SPAN} imię ${shown} nadano ${given}${sexSplit("children", row)}. ` +
+    `W latach ${CHILDREN_SPAN} imię ${shown} nadano ${given}${genderSplit("children", row)}. ` +
     `Zajmuje ${row.rank}. miejsce wśród imion nadanych w tym czasie`
   const best = trend.points.reduce((top, point) => {
     if (point.M + point.K > top.M + top.K) {
@@ -93,26 +99,26 @@ export function description(
 const capitalize = (text: string) =>
   text.slice(0, 1).toUpperCase() + text.slice(1)
 
-/** One row per year, a column for each sex that bears the name, the larger group first. */
+/** One row per year, a column for each gender that bears the name, the larger group first. */
 export function trendTable(
   dataset: Dataset,
   caption: string,
   trend: TrendResponse
 ) {
-  const sexes = SEXES.filter((sex) => trend.totals[sex] > 0).sort(
+  const genders = GENDERS.filter((gender) => trend.totals[gender] > 0).sort(
     (a, b) => trend.totals[b] - trend.totals[a]
   )
   const header = [
     "Rok",
-    ...sexes.map((sex) => capitalize(SEX_LABEL[dataset][sex])),
+    ...genders.map((gender) => capitalize(GENDER_LABEL[dataset][gender])),
   ]
   const rows = trend.points.map((point) => [
     String(point.year),
-    ...sexes.map((sex) => {
-      if (point[sex] === 0) {
+    ...genders.map((gender) => {
+      if (point[gender] === 0) {
         return "–"
       }
-      return formatNumber(point[sex])
+      return formatNumber(point[gender])
     }),
   ])
   return table(caption, header, rows)

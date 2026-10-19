@@ -2,7 +2,7 @@ import {
   naturalOrder,
   type Dataset,
   type NamesResponse,
-  type SexFilter,
+  type GenderFilter,
   type SortKey,
   type SortOrder,
   type YearFilter,
@@ -14,7 +14,7 @@ import { loadScope, type RankedRow } from "./scope.ts"
 interface NamesQuery {
   dataset: Dataset
   year: YearFilter
-  sex: SexFilter
+  gender: GenderFilter
   search: string
   sort: SortKey
   order: SortOrder
@@ -27,7 +27,7 @@ interface NamesQuery {
 }
 
 export async function queryNames(query: NamesQuery): Promise<NamesResponse> {
-  const scope = await loadScope(query.dataset, query.year, query.sex)
+  const scope = await loadScope(query.dataset, query.year, query.gender)
   let matched: RankedRow[]
   if (query.random) {
     matched = pickRare(scope.rows)
@@ -46,10 +46,10 @@ export async function queryNames(query: NamesQuery): Promise<NamesResponse> {
   return {
     rows: matched
       .slice(start, start + query.perPage)
-      .map(({ rank, name, sexes, count, share }) => ({
+      .map(({ rank, name, genders, count, share }) => ({
         rank,
         name,
-        sexes,
+        genders,
         count,
         share,
       })),
