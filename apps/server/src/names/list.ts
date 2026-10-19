@@ -8,7 +8,7 @@ import {
   type YearFilter,
 } from "@baza-imion/shared"
 import { fold } from "./fold.ts"
-import { pickRare } from "./random.ts"
+import { pickRandom } from "./random.ts"
 import { loadScope, type RankedRow } from "./scope.ts"
 
 interface NamesQuery {
@@ -20,7 +20,7 @@ interface NamesQuery {
   order: SortOrder
   page: number
   perPage: number
-  /** Answer with one random uncommon name instead of a page of the list. */
+  /** Answer with a page of names drawn at random instead of the list. */
   random: boolean
   /** List only these names (the visitor's favourites). */
   only: string[] | undefined
@@ -30,7 +30,7 @@ export async function queryNames(query: NamesQuery): Promise<NamesResponse> {
   const scope = await loadScope(query.dataset, query.year, query.gender)
   let matched: RankedRow[]
   if (query.random) {
-    matched = pickRare(scope.rows)
+    matched = pickRandom(scope.rows, query.perPage)
   } else {
     matched = match(scope.rows, query)
   }

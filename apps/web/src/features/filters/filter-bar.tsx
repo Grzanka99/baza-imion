@@ -101,7 +101,9 @@ export function FilterBar({
             year={year}
             onChange={handleOnYearChange}
           />
+          {/* A new selection drops a draw still loading or spinning. */}
           <RandomNameButton
+            key={`${dataset}:${year}:${gender}`}
             dataset={dataset}
             year={year}
             gender={gender}
