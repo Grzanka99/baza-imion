@@ -4,6 +4,8 @@ import { Dices } from "lucide-react"
 import { watchAnswer } from "@/api-client/answer-source"
 import { namesUrl } from "@/api-client/urls"
 import { Button } from "@/components/ui/button"
+import { NameLottery } from "@/features/filters/name-lottery"
+import { cn } from "@/lib/utils"
 import type {
   Dataset,
   NamesResponse,
@@ -11,7 +13,9 @@ import type {
   YearFilter,
 } from "@baza-imion/shared"
 
-/** Draws a name at random from the current selection. */
+const REEL_LENGTH = 30
+
+/** Draws a name at random from the current selection, on a spinning reel. */
 export function RandomNameButton({
   dataset,
   year,
@@ -24,17 +28,24 @@ export function RandomNameButton({
   onDraw: (name: string) => void
 }) {
   const [drawing, setDrawing] = useState(false)
+  const [reel, setReel] = useState<string[] | null>(null)
 
   async function draw() {
     setDrawing(true)
     try {
-      const url = namesUrl({ dataset, year, gender, random: true })
+      const url = namesUrl({
+        dataset,
+        year,
+        gender,
+        random: true,
+        perPage: REEL_LENGTH,
+      })
       const report = watchAnswer(url)
       const response = await fetch(url, { cache: "no-store" })
       const drawn: NamesResponse = await response.json()
-      if (response.ok && drawn.rows[0]) {
+      if (response.ok && drawn.rows.length > 0) {
         report(response)
-        onDraw(drawn.rows[0].name)
+        setReel(drawn.rows.map((row) => row.name))
       }
     } catch {
       // The search stays as it is; the button can simply be pressed again.
@@ -43,16 +54,24 @@ export function RandomNameButton({
     }
   }
 
+  function handleOnDone(name: string) {
+    setReel(null)
+    onDraw(name)
+  }
+
   return (
-    <Button
-      variant="outline"
-      size="icon"
-      aria-label="Wylosuj rzadkie imię"
-      title="Wylosuj rzadkie imię"
-      disabled={drawing}
-      onClick={draw}
-    >
-      <Dices />
-    </Button>
+    <>
+      <Button
+        variant="outline"
+        size="icon"
+        aria-label="Wylosuj imię"
+        title="Wylosuj imię"
+        disabled={drawing || reel !== null}
+        onClick={draw}
+      >
+        <Dices className={cn(drawing && "animate-spin")} />
+      </Button>
+      {reel && <NameLottery names={reel} onDone={handleOnDone} />}
+    </>
   )
 }

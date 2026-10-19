@@ -16,7 +16,7 @@ interface NamesRequest {
   order?: SortOrder
   page?: number
   perPage?: number
-  /** Ask for one random name instead of a page of the list. */
+  /** Ask for a page of names drawn at random instead of the list. */
   random?: boolean
   /** Ask only about these names. */
   names?: string[]
