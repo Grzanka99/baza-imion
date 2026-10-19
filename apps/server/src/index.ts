@@ -7,7 +7,8 @@ import {
 import { extname, join, normalize } from "node:path"
 import { pipeline } from "node:stream"
 
-import { NAME_PATH, type ApiError } from "@baza-imion/shared"
+import { NAME_PATH } from "@baza-imion/shared"
+import type { ApiError } from "@baza-imion/shared"
 import {
   handleNames,
   handleRobots,

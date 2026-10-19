@@ -4,12 +4,8 @@ import { FavoriteButton } from "@/features/favorites/favorite-button"
 import { displayName, formatNumber, formatPercent } from "@/lib/format"
 import type { MouseEvent } from "react"
 
-import {
-  DEFAULT_DATASET,
-  namePath,
-  type Dataset,
-  type NameRow,
-} from "@baza-imion/shared"
+import { DEFAULT_DATASET, namePath } from "@baza-imion/shared"
+import type { Dataset, NameRow } from "@baza-imion/shared"
 
 export function NamesTableRow({
   dataset,

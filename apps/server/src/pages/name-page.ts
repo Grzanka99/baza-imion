@@ -4,8 +4,8 @@ import {
   namePath,
   nameTitle,
   SITE_NAME,
-  type Dataset,
 } from "@baza-imion/shared"
+import type { Dataset } from "@baza-imion/shared"
 import { loadScope } from "../names/scope.ts"
 import { queryTrend } from "../names/trend.ts"
 import { escapeHtml, headTags } from "./html.ts"
@@ -15,8 +15,8 @@ import {
   FOOTNOTE,
   populationSentence,
   trendTable,
-  type Figures,
 } from "./name-text.ts"
+import type { Figures } from "./name-text.ts"
 
 /** What goes into the template: the status, the head tags and the body. */
 export interface Page {

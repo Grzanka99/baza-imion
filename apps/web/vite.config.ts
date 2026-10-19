@@ -1,7 +1,8 @@
 import { resolve } from "node:path"
 import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
-import { defineConfig, lazyPlugins, type Plugin } from "vite-plus"
+import { defineConfig, lazyPlugins } from "vite-plus"
+import type { Plugin } from "vite-plus"
 
 const CANONICAL = '<link rel="canonical" href="/"'
 

@@ -1,11 +1,5 @@
-import {
-  DATASET_YEARS,
-  plural,
-  type Dataset,
-  type NameRow,
-  type Sex,
-  type TrendResponse,
-} from "@baza-imion/shared"
+import { DATASET_YEARS, plural } from "@baza-imion/shared"
+import type { Dataset, NameRow, Sex, TrendResponse } from "@baza-imion/shared"
 import { formatNumber, table } from "./html.ts"
 
 // The sentences and tables of a name's page, in Polish.

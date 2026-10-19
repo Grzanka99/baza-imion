@@ -16,13 +16,8 @@ import { TrendTable } from "@/features/name-trend/trend-table"
 import { trackName } from "@/lib/analytics"
 import { displayName, formatCount, formatNumber } from "@/lib/format"
 import { SEX_LABEL } from "@/lib/labels"
-import {
-  HOME_TITLE,
-  nameTitle,
-  type Dataset,
-  type Sex,
-  type TrendResponse,
-} from "@baza-imion/shared"
+import { HOME_TITLE, nameTitle } from "@baza-imion/shared"
+import type { Dataset, Sex, TrendResponse } from "@baza-imion/shared"
 
 const SEXES: Sex[] = ["M", "K"]
 
