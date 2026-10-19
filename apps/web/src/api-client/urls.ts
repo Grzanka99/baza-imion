@@ -16,7 +16,7 @@ interface NamesRequest {
   order?: SortOrder
   page?: number
   perPage?: number
-  /** Ask for one random uncommon name instead of a page of the list. */
+  /** Ask for one random name instead of a page of the list. */
   random?: boolean
   /** Ask only about these names. */
   names?: string[]

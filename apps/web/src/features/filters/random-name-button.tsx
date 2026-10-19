@@ -11,7 +11,7 @@ import type {
   YearFilter,
 } from "@baza-imion/shared"
 
-/** Draws an uncommon name at random from the current selection. */
+/** Draws a name at random from the current selection. */
 export function RandomNameButton({
   dataset,
   year,
