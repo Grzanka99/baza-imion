@@ -66,12 +66,7 @@ function parse(url: string): View {
   return {
     dataset,
     search: params.get("q") ?? "",
-    // Links from before the rename say ?sex=K.
-    gender: oneOf<GenderFilter>(params.get("gender") ?? params.get("sex"), [
-      "all",
-      "M",
-      "K",
-    ]),
+    gender: oneOf<GenderFilter>(params.get("gender"), ["all", "M", "K"]),
     year,
     sort,
     order: oneOf<SortOrder>(params.get("order"), [
