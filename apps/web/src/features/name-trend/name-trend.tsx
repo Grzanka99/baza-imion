@@ -16,6 +16,7 @@ import { TrendTable } from "@/features/name-trend/trend-table"
 import { trackName } from "@/lib/analytics"
 import { displayName, formatCount, formatNumber } from "@/lib/format"
 import { SEX_LABEL } from "@/lib/labels"
+import { HOME_TITLE, nameTitle } from "@baza-imion/shared"
 import type { Dataset, Sex, TrendResponse } from "@baza-imion/shared"
 
 const SEXES: Sex[] = ["M", "K"]
@@ -56,6 +57,15 @@ export function NameTrend({
   useEffect(() => {
     if (name && shown) {
       trackName("trend-opened", shown)
+    }
+  }, [name, shown])
+
+  // The tab shows the open name once the server has confirmed it.
+  useEffect(() => {
+    if (!name) {
+      document.title = HOME_TITLE
+    } else if (shown) {
+      document.title = nameTitle(shown)
     }
   }, [name, shown])
 

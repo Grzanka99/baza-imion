@@ -44,13 +44,17 @@ Pomija pliki oznaczone `linguist-generated` w `.gitattributes`.
 ## Wdrożenie na Vercel
 
 Repozytorium jest gotowe do importu w Vercel (`vercel.json`): interfejs jest
-budowany jako statyczna strona, a `api/names.js` i `api/trend.js` działają
-jako funkcje Node.js (wywołują zbudowany `apps/server`).
+budowany jako statyczna strona, a pliki w `api/` działają jako funkcje
+Node.js (wywołują zbudowany `apps/server`).
 
 1. Zaimportuj repozytorium w Vercel.
 2. W ustawieniach projektu dodaj zmienne środowiskowe `TURSO_URL`
    i `TURSO_TOKEN` (Production i Preview).
-3. Wdróż.
+3. Dodaj `SITE_URL` (Production), np. `https://baza-imion.pl`. Linki
+   kanoniczne i mapa strony wskazują tę domenę jako właściwą, także na
+   stronach otwartych pod adresem `*.vercel.app`. Bez tej zmiennej linki
+   biorą adres z zapytania.
+4. Wdróż, a potem zgłoś `/sitemap.xml` w Google Search Console.
 
 Bez Turso każda nowo uruchomiona instancja funkcji pobierałaby dane
 z dane.gov.pl od zera.
@@ -62,7 +66,8 @@ Monorepo Vite+ (pnpm workspace):
 - `apps/web/` – interfejs (React, shadcn/ui na Radix).
 - `apps/server/` – pośrednik między interfejsem a dane.gov.pl. Pobiera dane
   całymi plikami CSV, liczy miejsca w rankingu, udziały i sumy.
-- `packages/shared/` – typy wspólne dla obu części.
+- `packages/shared/` – typy i funkcje wspólne dla obu części (np. adres
+  strony imienia).
 - `api/` – punkty wejścia funkcji Vercel; korzystają ze zbudowanego
   `apps/server`. Vercel szuka funkcji tylko w `api/` w katalogu głównym.
 - `vite.config.ts` – formatowanie i lint dla całego repozytorium.
@@ -71,6 +76,7 @@ Monorepo Vite+ (pnpm workspace):
 apps/server/src/
   index.ts      samodzielny serwer Node (lokalnie i `vp run start`)
   http/         obsługa zapytań: odczyt parametrów, odpowiedzi JSON, błędy
+  pages/        strony dla wyszukiwarek: strona imienia, sitemap.xml, robots.txt
   names/        dane o imionach: wczytywanie roczników, ranking, lista, trend
   upstream/     pobieranie i czytanie plików CSV z dane.gov.pl
   cache/        pamięć podręczna: pamięć procesu i baza Turso
@@ -101,6 +107,18 @@ apps/web/src/
 | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `GET /api/names` | `dataset` (`population`, `children`), `year` (rok lub `all` dla noworodków), `sex` (`all`, `M`, `K`), `q`, `sort` (`count`, `name`), `order` (`desc`, `asc`), `page`, `perPage`, `random=1` (jedno losowe, rzadkie imię), `names` (tylko podane imiona, po przecinku) |
 | `GET /api/trend` | `dataset`, `name`                                                                                                                                                                                                                                                     |
+
+### Strony dla wyszukiwarek
+
+Każde imię ma własny adres, np. `/imie/zofia`. Serwer zwraca pod nim
+`index.html` aplikacji z tytułem, opisem i liczbami tego imienia w treści.
+Robot wyszukiwarki widzi je bez uruchamiania skryptów, a w przeglądarce
+React zastępuje tę treść aplikacją z otwartym panelem imienia.
+`/sitemap.xml` wymienia imiona noszone przez co najmniej 100 żyjących osób
+albo nadane co najmniej 100 dzieciom, a `/robots.txt` wskazuje na nią.
+Vercel kieruje te adresy do `api/page.js`, `api/sitemap.js` i `api/robots.js`
+(`rewrites` w `vercel.json`), a samodzielny serwer robi to samo.
+W `vp run dev` strona imienia działa, ale bez treści od serwera.
 
 Nowy rocznik danych wymaga dopisania identyfikatorów plików w
 `apps/server/src/upstream/resource-ids.ts` i roku w

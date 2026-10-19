@@ -5,7 +5,9 @@ PESEL registry data from dane.gov.pl: names of the whole living population,
 and names given to newborns since 2000.
 
 `apps/server` downloads the CSV files from dane.gov.pl, ranks the names, and
-answers `/api/names` and `/api/trend`. It caches answers in process memory and
+answers `/api/names` and `/api/trend`. For search engines it also renders
+each name's page (`/imie/zofia`) into the web app's built `index.html`, and
+serves `/sitemap.xml` and `/robots.txt`. It caches answers in process memory and
 in Turso. `apps/web` is the React page: a filtered, sortable name table, a
 random rare name, each name's trend year by year, and favorites.
 `packages/shared` holds the types both sides share. On Vercel, the functions

@@ -5,6 +5,8 @@ import {
   DATASET_YEARS,
   DEFAULT_DATASET,
   defaultYear,
+  nameFromPath,
+  namePath,
   naturalOrder,
   oppositeOrder,
   type Dataset,
@@ -14,7 +16,10 @@ import {
   type YearFilter,
 } from "@baza-imion/shared"
 
-/** Everything the user has chosen; it lives in the URL's query string. */
+/**
+ * Everything the user has chosen. It lives in the URL: the open name in the
+ * path (/imie/zofia), the rest in the query string.
+ */
 export interface View {
   dataset: Dataset
   search: string
@@ -38,8 +43,9 @@ function oneOf<T extends string>(value: string | null, allowed: readonly T[]) {
   return allowed[0]
 }
 
-function parse(query: string): View {
-  const params = new URLSearchParams(query)
+/** Reads the path and query string of `url`. */
+function parse(url: string): View {
+  const { pathname, searchParams: params } = new URL(url, window.location.href)
   // The default dataset comes first in DATASETS.
   const dataset = oneOf<Dataset>(params.get("dataset"), DATASETS)
   const sort = oneOf<SortKey>(params.get("sort"), ["count", "name"])
@@ -68,13 +74,18 @@ function parse(query: string): View {
       oppositeOrder(natural),
     ]),
     page,
-    name: params.get("name") || null,
+    // Links from before name pages had paths: ?name=ZOFIA.
+    name: nameFromPath(pathname) ?? (params.get("name") || null),
     favorites: params.get("fav") === "1",
   }
 }
 
 /** Defaults are left out, so a fresh view has a clean URL. */
 function serialize(view: View) {
+  let path = "/"
+  if (view.name) {
+    path = namePath(view.name)
+  }
   const params = new URLSearchParams()
   if (view.dataset !== DEFAULT_DATASET) {
     params.set("dataset", view.dataset)
@@ -97,14 +108,17 @@ function serialize(view: View) {
   if (view.page > 1) {
     params.set("page", String(view.page))
   }
-  if (view.name) {
-    params.set("name", view.name)
-  }
   if (view.favorites) {
     params.set("fav", "1")
   }
-  return params.toString()
+  const query = params.toString()
+  if (query) {
+    return `${path}?${query}`
+  }
+  return path
 }
+
+const currentUrl = () => window.location.pathname + window.location.search
 
 function subscribe(onChange: () => void) {
   window.addEventListener("popstate", onChange)
@@ -116,16 +130,12 @@ function subscribe(onChange: () => void) {
 }
 
 export function useView() {
-  const query = useSyncExternalStore(subscribe, () => window.location.search)
-  const view = useMemo(() => parse(query), [query])
+  const url = useSyncExternalStore(subscribe, currentUrl)
+  const view = useMemo(() => parse(url), [url])
 
   const update = useCallback((changes: Partial<View>) => {
-    const next = serialize({ ...parse(window.location.search), ...changes })
-    let url = window.location.pathname
-    if (next) {
-      url = `?${next}`
-    }
-    window.history.replaceState(null, "", url)
+    const next = serialize({ ...parse(currentUrl()), ...changes })
+    window.history.replaceState(null, "", next)
     window.dispatchEvent(new Event(CHANGE_EVENT))
   }, [])
 

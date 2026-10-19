@@ -1,3 +1,5 @@
+export * from "./names.ts"
+
 export type Sex = "M" | "K"
 export type SexFilter = Sex | "all"
 export type YearFilter = number | "all"

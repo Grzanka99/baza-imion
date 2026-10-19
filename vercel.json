@@ -6,7 +6,13 @@
   "outputDirectory": "apps/web/dist",
   "functions": {
     "api/*.js": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "includeFiles": "apps/web/dist/index.html"
     }
-  }
+  },
+  "rewrites": [
+    { "source": "/imie/:name", "destination": "/api/page?name=:name" },
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    { "source": "/robots.txt", "destination": "/api/robots" }
+  ]
 }
