@@ -24,6 +24,7 @@ export function NameLottery({
   const winner = Math.max(0, names.length - 2)
   const [landed, setLanded] = useState(false)
   const strip = useRef<HTMLDivElement>(null)
+  const dialog = useRef<HTMLDivElement>(null)
 
   function skip() {
     if (landed) {
@@ -39,6 +40,7 @@ export function NameLottery({
   const showWinner = useEffectEvent(() => onDone(names[winner]))
 
   useEffect(() => {
+    dialog.current?.focus()
     let duration = SPIN_MS
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       duration = 0
@@ -84,13 +86,18 @@ export function NameLottery({
 
   return createPortal(
     <div
+      ref={dialog}
+      tabIndex={-1}
       role="dialog"
       aria-modal="true"
       aria-label="Losowanie imienia"
-      className="fixed inset-0 z-50 flex animate-in items-center justify-center bg-background/70 backdrop-blur-sm fade-in"
+      className="fixed inset-0 z-50 flex animate-in items-center justify-center bg-background/70 backdrop-blur-sm outline-none fade-in motion-reduce:animate-none"
       onClick={handleOnClick}
     >
-      <div className="w-72 animate-in rounded-xl border bg-card p-4 text-center shadow-lg zoom-in-95">
+      <div className="w-72 animate-in rounded-xl border bg-card p-4 text-center shadow-lg zoom-in-95 motion-reduce:animate-none">
+        <p className="sr-only" aria-live="polite">
+          {landed && `Wylosowane imię: ${displayName(names[winner])}`}
+        </p>
         <div className="relative h-36 overflow-hidden rounded-lg bg-muted/50 [mask-image:linear-gradient(transparent,black_30%,black_70%,transparent)]">
           <div
             className={cn(
@@ -103,9 +110,9 @@ export function NameLottery({
             {names.map((name, index) => (
               <div
                 key={name}
-                aria-hidden={index !== winner || !landed}
+                aria-hidden
                 className={cn(
-                  "flex h-12 items-center justify-center text-2xl font-semibold transition-transform duration-300",
+                  "flex h-12 items-center justify-center text-2xl font-semibold transition-transform duration-300 motion-reduce:transition-none",
                   landed && index === winner && "scale-110 text-primary"
                 )}
               >

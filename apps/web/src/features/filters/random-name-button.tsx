@@ -45,7 +45,7 @@ export function RandomNameButton({
       const drawn: NamesResponse = await response.json()
       if (response.ok && drawn.rows.length > 0) {
         report(response)
-        setReel(drawn.rows.map((row) => row.name))
+        setReel(reelAround(drawn.rows.map((row) => row.name)))
       }
     } catch {
       // The search stays as it is; the button can simply be pressed again.
@@ -69,9 +69,20 @@ export function RandomNameButton({
         disabled={drawing || reel !== null}
         onClick={draw}
       >
-        <Dices className={cn(drawing && "animate-spin")} />
+        <Dices className={cn(drawing && "motion-safe:animate-spin")} />
       </Button>
       {reel && <NameLottery names={reel} onDone={handleOnDone} />}
     </>
   )
+}
+
+/**
+ * Only the first name drawn has exactly the weighted odds, so it is the winner,
+ * placed where the reel stops: last but one.
+ */
+function reelAround([winner, ...others]: string[]): string[] {
+  if (others.length === 0) {
+    return [winner]
+  }
+  return [...others.slice(0, -1), winner, ...others.slice(-1)]
 }
