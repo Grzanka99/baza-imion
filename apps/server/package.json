@@ -9,7 +9,8 @@
   "scripts": {
     "dev": "node --env-file-if-exists=../../.env --watch src/index.ts",
     "build": "tsc && vp pack",
-    "start": "node --env-file-if-exists=../../.env dist/index.mjs"
+    "start": "node --env-file-if-exists=../../.env dist/index.mjs",
+    "fill-cache": "node --env-file=../../.env src/fill-cache.ts"
   },
   "dependencies": {
     "@baza-imion/shared": "workspace:*",
