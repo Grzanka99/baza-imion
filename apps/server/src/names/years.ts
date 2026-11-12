@@ -13,7 +13,8 @@ export interface Slice {
   forEach(visit: (name: string, gender: Gender, count: number) => void): void
 }
 
-const historyKey = (year: number) => `year:${year}`
+export const fileKey = (resourceId: number) => `file:${resourceId}`
+export const historyKey = (year: number) => `year:${year}`
 
 // Shared by the years being loaded at the same moment.
 let history: ReturnType<typeof fetchChildrenHistory> | undefined
@@ -24,7 +25,7 @@ function fetchHistory() {
 }
 
 async function loadFile(resourceId: number, gender: Gender): Promise<Slice> {
-  const { value, fetchedAt } = await cached(`file:${resourceId}`, () =>
+  const { value, fetchedAt } = await cached(fileKey(resourceId), () =>
     fetchNameCounts(resourceId, gender)
   )
   return {

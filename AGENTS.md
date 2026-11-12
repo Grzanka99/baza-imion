@@ -8,8 +8,12 @@ and names given to newborns since 2000.
 answers `/api/names` and `/api/trend`. For search engines it also renders
 each name's page (`/imie/zofia`) into the web app's built `index.html`, and
 serves `/sitemap.xml` and `/robots.txt`. It caches answers in process memory and
-in Turso. `apps/web` is the React page: a filtered, sortable name table, a
-random rare name, each name's trend year by year, and favorites.
+in Turso, for good: a published file never changes. dane.gov.pl only answers
+connections from Poland, so Vercel cannot download anything. After adding a
+year to `resource-ids.ts`, run `vp run @baza-imion/server#fill-cache` from a
+Polish machine to store the files in Turso. `apps/web` is the React page: a
+filtered, sortable name table, a random rare name, each name's trend year by
+year, and favorites.
 `packages/shared` holds the types both sides share. On Vercel, the functions
 in `api/` call the built server.
 
